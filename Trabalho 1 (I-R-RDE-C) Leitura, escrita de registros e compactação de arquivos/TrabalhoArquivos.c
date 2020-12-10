@@ -4,8 +4,58 @@
 #include <string.h>
 #include <windows.h>
 
+typedef struct hist {
+        char id_aluno[8];
+        char sigla_disc[4];
+        char nome_aluno[50];
+        char nome_disc[50];
+        float media;
+        float freq;
+    } ALUNO;
 
 
+
+
+
+
+
+
+
+
+void Insere_Registro(FILE *arqOUT, FILE *arqIN){
+
+ALUNO registro;
+char registro_buffer[150];
+int tam;
+int initEle;
+
+
+fread(&registro , sizeof(ALUNO), 1, arqIN);
+sprintf(registro_buffer, "%s#%s#%s#%s#%.1f#%.1f",registro.id_aluno,registro.sigla_disc, registro.nome_aluno, registro.nome_disc, registro.media, registro.freq);
+tam = strlen(registro_buffer);
+fread(&initEle,sizeof(int),1,arqOUT);
+if(initEle == -1){
+fseek(arqOUT, 0, SEEK_END);    
+fwrite(&tam, sizeof(int), 1, arqOUT);
+fwrite(registro_buffer,sizeof(char), tam ,arqOUT);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+};
 
 
 
@@ -49,11 +99,14 @@ case 1:
         exit(0);
     }
     if((arqOUT = fopen("registros.bin", "r+b")) == NULL){
+        int init = -1;
         system("cls");
         printf("\n Arquivo de saida nao existente, criando um novo...\n ");
         Sleep(1000);
         if((arqOUT = fopen("registros.bin", "w+b")) == NULL){
             printf("\nFalha na criação do arquivo.");
+        }else{
+            fwrite(&init ,sizeof(int), 1 ,arqOUT);
         }
     }else{
         system("cls");
@@ -65,6 +118,9 @@ case 1:
 
     break;
 case 2:
+    Insere_Registro(arqOUT, arqIN);
+    Sleep(2000);
+
 
     break;
 
