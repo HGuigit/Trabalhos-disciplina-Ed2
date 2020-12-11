@@ -28,16 +28,33 @@ ALUNO registro;
 char registro_buffer[150];
 int tam;
 int initEle;
+int PosParouDeLer;
+
+//Pegando posição onde parei de ler e ajustando onde devo ler no arquivo de inserção(Essa posição é gravado no arquivo OUT após o primeiro elemento da lista ligada)
+fseek(arqOUT, sizeof(int), SEEK_SET);
+fread(&PosParouDeLer, sizeof(int), 1, arqOUT);
+fseek(arqIN, sizeof(ALUNO)*PosParouDeLer, SEEK_SET);
+PosParouDeLer = PosParouDeLer + 1;
+fseek(arqOUT, sizeof(int), SEEK_SET);
+fwrite(&PosParouDeLer, sizeof(int), 1,arqOUT);
 
 
+
+//Bufferizando dado do registro
 fread(&registro , sizeof(ALUNO), 1, arqIN);
 sprintf(registro_buffer, "%s#%s#%s#%s#%.1f#%.1f",registro.id_aluno,registro.sigla_disc, registro.nome_aluno, registro.nome_disc, registro.media, registro.freq);
 tam = strlen(registro_buffer);
+
+
+
+fseek(arqOUT, 0, SEEK_SET);
 fread(&initEle,sizeof(int),1,arqOUT);
 if(initEle == -1){
 fseek(arqOUT, 0, SEEK_END);    
 fwrite(&tam, sizeof(int), 1, arqOUT);
 fwrite(registro_buffer,sizeof(char), tam ,arqOUT);
+printf("\nRegistro inserido no final do arquivo!\n\n");
+Sleep(1000);
 }
 
 
@@ -99,7 +116,8 @@ case 1:
         exit(0);
     }
     if((arqOUT = fopen("registros.bin", "r+b")) == NULL){
-        int init = -1;
+        int init = -1; //inicio lista ligada
+        int initPegaRegistro = 0; // Onde parei de ler no arquivo de inserção
         system("cls");
         printf("\n Arquivo de saida nao existente, criando um novo...\n ");
         Sleep(1000);
@@ -107,6 +125,7 @@ case 1:
             printf("\nFalha na criação do arquivo.");
         }else{
             fwrite(&init ,sizeof(int), 1 ,arqOUT);
+            fwrite(&initPegaRegistro, sizeof(int), 1, arqOUT);
         }
     }else{
         system("cls");
