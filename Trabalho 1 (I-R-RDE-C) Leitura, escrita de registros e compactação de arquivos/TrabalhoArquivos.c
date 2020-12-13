@@ -63,23 +63,78 @@ Sleep(1000);
 
 
 
-
-
-
-
-
-
-
-
-
 };
 
+void Remove_Registro(FILE *arqOUT, FILE *arqREMOV){
+
+char id[7];
+char disc[3];
+char charRemov = ' ';
+int point_count = 0;
+int i=0;
+int j=0;
+int pareiDeLer; // numero de registros q ja li
+int acabouArq = 0; 
+
+id[7] = '\0';
+disc[3] = '\0';
+
+fseek(arqOUT, 2*sizeof(int), SEEK_SET); //Pega onde parei de remover no arquivo de remoção(numero gravado em arqOUT, terceiro inteiro no começo)
+fread(&pareiDeLer, sizeof(int),1,arqOUT); 
+fseek(arqOUT, -4, SEEK_CUR); //Posiciona ponteiro para sobrescrever o campo adicionando 1
+
+fseek(arqREMOV, 12*pareiDeLer, SEEK_SET);
+
+// Pegar ID e Disciplina a serem Removidas
+
+while(point_count != 2){
+
+charRemov = fgetc(arqREMOV);
+if(feof(arqREMOV) != 0){
+    printf("\nNao ha mais registros para remover!\n, abortando...");
+    acabouArq = 1;
+    break;
+    
+}
+if(charRemov == 0){
+    point_count++;
+    continue;
+}
+
+if(point_count == 0){
+id[i] = charRemov;
+i++;
+}
+if(point_count == 1){
+disc[j] = charRemov;
+j++;
+}
+
+
+
+}
+
+if(acabouArq == 0){
+printf("\n%s\n", id);
+printf("\n%s\n", disc);
+///////
+
+//Incrementar 1 no terceiro inteiro de arqOUT(Onde parei de remover)
+
+pareiDeLer = pareiDeLer + 1;
+fwrite(&pareiDeLer, sizeof(int), 1,arqOUT);
+fseek(arqOUT, 0, SEEK_SET);
+/////
 
 
 
 
 
+}
 
+
+
+}
 
 int main(void){
 
@@ -118,6 +173,7 @@ case 1:
     if((arqOUT = fopen("registros.bin", "r+b")) == NULL){
         int init = -1; //inicio lista ligada
         int initPegaRegistro = 0; // Onde parei de ler no arquivo de inserção
+        int initRemoveRegistro = 0; // Onde parei de remover a partir do arquivo de remoção
         system("cls");
         printf("\n Arquivo de saida nao existente, criando um novo...\n ");
         Sleep(1000);
@@ -126,6 +182,7 @@ case 1:
         }else{
             fwrite(&init ,sizeof(int), 1 ,arqOUT);
             fwrite(&initPegaRegistro, sizeof(int), 1, arqOUT);
+            fwrite(&initRemoveRegistro, sizeof(int),1, arqOUT);
         }
     }else{
         system("cls");
@@ -144,7 +201,8 @@ case 2:
     break;
 
 case 3:
-
+    Remove_Registro(arqOUT, arqREMOV);
+    Sleep(2000);
 
     break;
 
@@ -155,7 +213,7 @@ case 4:
 
 case 5:
     printf("\n\nSaindo... :(\n\n");
-    Sleep(1000);
+    Sleep(500);
     fclose(arqIN);
     fclose(arqOUT);
     fclose(arqREMOV);
