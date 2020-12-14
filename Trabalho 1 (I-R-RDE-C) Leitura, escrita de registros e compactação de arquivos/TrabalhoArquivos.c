@@ -69,15 +69,26 @@ void Remove_Registro(FILE *arqOUT, FILE *arqREMOV){
 
 char id[7];
 char disc[3];
+char idarqOUT[7];
+char discarqOUT[3];
 char charRemov = ' ';
 int point_count = 0;
 int i=0;
 int j=0;
 int pareiDeLer; // numero de registros q ja li
 int acabouArq = 0; 
+int tam;
+int achou = 0;
+
+char marcador = '*';
+int offset_final = -1;
+int posUltimoEle;
+int elemLista;
 
 id[7] = '\0';
 disc[3] = '\0';
+idarqOUT[7] = '\0';
+discarqOUT[3] = '\0';
 
 fseek(arqOUT, 2*sizeof(int), SEEK_SET); //Pega onde parei de remover no arquivo de remoção(numero gravado em arqOUT, terceiro inteiro no começo)
 fread(&pareiDeLer, sizeof(int),1,arqOUT); 
@@ -115,16 +126,59 @@ j++;
 }
 
 if(acabouArq == 0){
-printf("\n%s\n", id);
-printf("\n%s\n", disc);
-///////
+    printf("Removendo registro:\n\n");
+    printf("id:\n%s\n\n", id);
+    printf("disc:\n%s\n", disc);
+    ///////
 
-//Incrementar 1 no terceiro inteiro de arqOUT(Onde parei de remover)
+    //Incrementar 1 no terceiro inteiro de arqOUT(Onde parei de remover)
 
-pareiDeLer = pareiDeLer + 1;
-fwrite(&pareiDeLer, sizeof(int), 1,arqOUT);
+    pareiDeLer = pareiDeLer + 1;
+    fwrite(&pareiDeLer, sizeof(int), 1,arqOUT);
+    fseek(arqOUT, 0, SEEK_SET);
+    /////
+    fseek(arqOUT, 12, SEEK_SET);
+
+while(achou == 0){
+    fread(&tam, sizeof(int), 1, arqOUT);
+    fread(&idarqOUT, sizeof(char), 7, arqOUT);
+    
+    fseek(arqOUT, 1, SEEK_CUR);
+    fread(&discarqOUT, sizeof(char), 3, arqOUT);
+    if((strcmp(id, idarqOUT) == 0) && (strcmp(disc, discarqOUT) == 0)){
+        fseek(arqOUT, -15, SEEK_CUR);
+        posUltimoEle = ftell(arqOUT);
+        fseek(arqOUT, 4, SEEK_CUR);
+        achou = 1;
+        fwrite(&marcador, sizeof(char), 1, arqOUT);
+        fwrite(&offset_final, sizeof(int), 1, arqOUT);
+        break;
+    }
+
+    tam = tam - 15;
+    fseek(arqOUT, tam+4, SEEK_CUR);
+}
 fseek(arqOUT, 0, SEEK_SET);
-/////
+fread(&elemLista, sizeof(int), 1, arqOUT);
+achou = 0;
+if(elemLista == -1){
+    fseek(arqOUT, 0, SEEK_SET);
+    elemLista = posUltimoEle;
+    fwrite(&elemLista, sizeof(int), 1, arqOUT);
+}else{
+    while(achou == 0){
+    fseek(arqOUT, elemLista + 5, SEEK_SET);
+    fread(&elemLista, sizeof(int), 1, arqOUT);
+    if(elemLista == -1){
+        fseek(arqOUT, -4, SEEK_CUR);
+        elemLista = posUltimoEle;
+        fwrite(&elemLista, sizeof(int), 1, arqOUT);
+        break;
+      
+    }
+    }
+}
+
 
 
 
@@ -195,14 +249,14 @@ case 1:
     break;
 case 2:
     Insere_Registro(arqOUT, arqIN);
-    Sleep(2000);
+    Sleep(1000);
 
 
     break;
 
 case 3:
     Remove_Registro(arqOUT, arqREMOV);
-    Sleep(2000);
+    Sleep(1500);
 
     break;
 
