@@ -132,9 +132,8 @@ int NaoRemoveu = 0;
 int TamArq;
 
 char marcador = '*';
-int offset_final = -1;
-int posUltimoEle;
-int elemLista;
+int posEle;
+int primElemLista;
 
 id[7] = '\0';
 disc[3] = '\0';
@@ -143,7 +142,6 @@ discarqOUT[3] = '\0';
 
 fseek(arqOUT, 2*sizeof(int), SEEK_SET); //Pega onde parei de remover no arquivo de remoção(numero gravado em arqOUT, terceiro inteiro no começo)
 fread(&pareiDeLer, sizeof(int),1,arqOUT); 
-fseek(arqOUT, -4, SEEK_CUR); //Posiciona ponteiro para sobrescrever o campo adicionando 1
 
 fseek(arqREMOV, 12*pareiDeLer, SEEK_SET);
 
@@ -184,6 +182,9 @@ if(acabouArq == 0){
 
     fseek(arqOUT, 0, SEEK_END);
     TamArq = ftell(arqOUT);
+
+    fseek(arqOUT, 0, SEEK_SET);
+    fread(&primElemLista, sizeof(int), 1, arqOUT);
     
     /////
     fseek(arqOUT, 12, SEEK_SET);
@@ -202,11 +203,11 @@ while(achou == 0){
     fread(&discarqOUT, sizeof(char), 3, arqOUT);
     if((strcmp(id, idarqOUT) == 0) && (strcmp(disc, discarqOUT) == 0)){
         fseek(arqOUT, -15, SEEK_CUR);
-        posUltimoEle = ftell(arqOUT);
+        posEle = ftell(arqOUT);
         fseek(arqOUT, 4, SEEK_CUR);
         achou = 1;
         fwrite(&marcador, sizeof(char), 1, arqOUT);
-        fwrite(&offset_final, sizeof(int), 1, arqOUT);
+        fwrite(&primElemLista, sizeof(int), 1, arqOUT);
         break;
     }
 
@@ -215,29 +216,13 @@ while(achou == 0){
 }
 if(NaoRemoveu != 1){
 //Incrementar 1 no terceiro inteiro de arqOUT(Onde parei de remover)
-fseek(arqOUT, 8, SEEK_SET);
+fseek(arqOUT, 8, SEEK_SET); //Posiciona ponteiro para sobrescrever o campo adicionando 1
 pareiDeLer = pareiDeLer + 1;
 fwrite(&pareiDeLer, sizeof(int), 1,arqOUT);
-fseek(arqOUT, 0, SEEK_SET);    
-fread(&elemLista, sizeof(int), 1, arqOUT);
-achou = 0;
-if(elemLista == -1){
-    fseek(arqOUT, 0, SEEK_SET);
-    elemLista = posUltimoEle;
-    fwrite(&elemLista, sizeof(int), 1, arqOUT);
-}else{
-    while(achou == 0){
-    fseek(arqOUT, elemLista + 5, SEEK_SET);
-    fread(&elemLista, sizeof(int), 1, arqOUT);
-    if(elemLista == -1){
-        fseek(arqOUT, -4, SEEK_CUR);
-        elemLista = posUltimoEle;
-        fwrite(&elemLista, sizeof(int), 1, arqOUT);
-        break;
-      
-    }
-    }
-}
+fseek(arqOUT, 0, SEEK_SET);
+primElemLista = posEle;
+fwrite(&primElemLista, sizeof(int), 1, arqOUT);
+
 
 }else{
     printf("\n\nEsse campo nao pode ser removido(Nao existe)");
