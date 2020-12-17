@@ -26,14 +26,28 @@ void Insere_Registro(FILE *arqOUT, FILE *arqIN){
 
 ALUNO registro;
 char registro_buffer[150];
+int tamArq;
 int tam;
+int tamReg;
 int initEle;
+int proxEle;
 int PosParouDeLer;
+int PosEle;
+int achou = 0;
 
 //Pegando posição onde parei de ler e ajustando onde devo ler no arquivo de inserção(Essa posição é gravado no arquivo OUT após o primeiro elemento da lista ligada)
+fseek(arqIN, 0, SEEK_END);
+tamArq = ftell(arqIN);
+fseek(arqIN, 0, SEEK_SET);
 fseek(arqOUT, sizeof(int), SEEK_SET);
+
 fread(&PosParouDeLer, sizeof(int), 1, arqOUT);
 fseek(arqIN, sizeof(ALUNO)*PosParouDeLer, SEEK_SET);
+if(ftell(arqIN) >= tamArq){
+
+    printf("\n\nNao ha mais nada a ser inserido!\n");
+
+}else{
 PosParouDeLer = PosParouDeLer + 1;
 fseek(arqOUT, sizeof(int), SEEK_SET);
 fwrite(&PosParouDeLer, sizeof(int), 1,arqOUT);
@@ -55,12 +69,47 @@ fwrite(&tam, sizeof(int), 1, arqOUT);
 fwrite(registro_buffer,sizeof(char), tam ,arqOUT);
 printf("\nRegistro inserido no final do arquivo!\n\n");
 Sleep(1000);
+}else{
+    proxEle = initEle;
+    initEle = 0;
+    while(achou == 0 && proxEle != -1){
+        fseek(arqOUT, proxEle, SEEK_SET);
+        fread(&tamReg, sizeof(int), 1, arqOUT);
+        if(tamReg >= tam){
+            fseek(arqOUT, 1 ,SEEK_CUR);
+            fread(&proxEle, sizeof(int), 1, arqOUT);
+            fseek(arqOUT, -9, SEEK_CUR);
+            fwrite(&tam, sizeof(int), 1, arqOUT);
+            fwrite(registro_buffer,sizeof(char), tam ,arqOUT);
+            printf("\nRegistro inserido no meio do arquivo!\n\n"); //Ajeitar lista???
+            if(initEle != 0){
+            fseek(arqOUT, initEle+5, SEEK_SET);
+            }else{
+            fseek(arqOUT, 0, SEEK_SET);
+            }
+            fwrite(&proxEle, sizeof(int), 1, arqOUT);
+            achou = 1;
+            Sleep(1000);
+        }else{
+            fseek(arqOUT, 1, SEEK_CUR);
+            initEle = proxEle;
+            fread(&proxEle, sizeof(int), 1, arqOUT);
+        }
+        
+    }
+    if(achou == 0){
+        fseek(arqOUT, 0, SEEK_END);    
+        fwrite(&tam, sizeof(int), 1, arqOUT);
+        fwrite(registro_buffer,sizeof(char), tam ,arqOUT);
+        printf("\nRegistro inserido no final do arquivo!\n\n");
+        Sleep(1000);
+    }
+
 }
 
 
 
-
-
+}
 
 
 };
@@ -79,6 +128,8 @@ int pareiDeLer; // numero de registros q ja li
 int acabouArq = 0; 
 int tam;
 int achou = 0;
+int NaoRemoveu = 0;
+int TamArq;
 
 char marcador = '*';
 int offset_final = -1;
@@ -131,15 +182,19 @@ if(acabouArq == 0){
     printf("disc:\n%s\n", disc);
     ///////
 
-    //Incrementar 1 no terceiro inteiro de arqOUT(Onde parei de remover)
-
-    pareiDeLer = pareiDeLer + 1;
-    fwrite(&pareiDeLer, sizeof(int), 1,arqOUT);
-    fseek(arqOUT, 0, SEEK_SET);
+    fseek(arqOUT, 0, SEEK_END);
+    TamArq = ftell(arqOUT);
+    
     /////
     fseek(arqOUT, 12, SEEK_SET);
 
+
 while(achou == 0){
+    if(ftell(arqOUT) >= TamArq){
+        NaoRemoveu = 1;
+        break;
+    }
+
     fread(&tam, sizeof(int), 1, arqOUT);
     fread(&idarqOUT, sizeof(char), 7, arqOUT);
     
@@ -158,7 +213,12 @@ while(achou == 0){
     tam = tam - 15;
     fseek(arqOUT, tam+4, SEEK_CUR);
 }
-fseek(arqOUT, 0, SEEK_SET);
+if(NaoRemoveu != 1){
+//Incrementar 1 no terceiro inteiro de arqOUT(Onde parei de remover)
+fseek(arqOUT, 8, SEEK_SET);
+pareiDeLer = pareiDeLer + 1;
+fwrite(&pareiDeLer, sizeof(int), 1,arqOUT);
+fseek(arqOUT, 0, SEEK_SET);    
 fread(&elemLista, sizeof(int), 1, arqOUT);
 achou = 0;
 if(elemLista == -1){
@@ -179,6 +239,9 @@ if(elemLista == -1){
     }
 }
 
+}else{
+    printf("\n\nEsse campo nao pode ser removido(Nao existe)");
+}
 
 
 
