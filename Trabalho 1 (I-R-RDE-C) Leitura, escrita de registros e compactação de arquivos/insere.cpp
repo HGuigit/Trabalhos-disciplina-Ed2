@@ -11,7 +11,7 @@ int main() {
         char nome_disc[50];
         float media;
         float freq;
-    } vet[7] = {{"2001001", "AAA", "João da Silva", "Disc AAA", 7.5, 72.3},
+    } vet[8] = {{"2001001", "AAA", "João da Silva", "Disc AAA", 7.5, 72.3},
                 {"2001001", "BBB", "João da Silva", "Disc BBB", 8.2, 80.4},
                 {"2001001", "CCC", "João da Silva", "Disc CCC", 5.4, 79.7},
                 
@@ -19,7 +19,8 @@ int main() {
                 {"2002001", "HHH", "Paulo Souza", "Disc HHH", 7.3, 82.7},
                 
                 {"2002002", "HHH", "Pedro da Silva", "Disc HHH", 9.5, 92.7},
-				{"2003001", "CCC", "João Amorim", "Disc CCC", 5.4, 79.7}};
+				{"2003001", "CCC", "João Amorim", "Disc CCC", 5.4, 79.7},
+				{"2003001", "DDD", "João Pedro", "Disc DDD", 5.4, 79.7}};
        
     fd = fopen("insere.bin", "w+b");
     fwrite(vet, sizeof(vet), 1, fd);

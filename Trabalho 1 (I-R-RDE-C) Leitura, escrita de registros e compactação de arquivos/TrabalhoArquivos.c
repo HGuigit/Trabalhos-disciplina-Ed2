@@ -14,7 +14,92 @@ typedef struct hist {
     } ALUNO;
 
 
+void Compacta_Registro(FILE *arqOUT){
 
+    int head = -1;
+    int tamArqIN;
+    int tamArqREM;
+    int tam;
+    char asterisco;
+    int contHashtag = 0;
+    int count = 0;
+    int tamArqOut;
+    char caracter = ' ';
+    FILE *arqCOMPACTO;
+
+    if( (arqCOMPACTO = fopen("registros2.bin", "w+b")) == NULL){
+        printf("Falha na compactação do arquivo.");
+    }else{
+    fseek(arqOUT, 0, SEEK_END);
+    tamArqOut = ftell(arqOUT);
+    fseek(arqOUT, 4, SEEK_SET);
+    fread(&tamArqIN, sizeof(int), 1, arqOUT);
+    fread(&tamArqREM, sizeof(int),1, arqOUT);
+    fwrite(&head, sizeof(int), 1, arqCOMPACTO);
+    fwrite(&tamArqIN, sizeof(int), 1, arqCOMPACTO);
+    fwrite(&tamArqREM, sizeof(int),1, arqCOMPACTO);
+    
+    
+    while(fread(&tam, sizeof(int), 1, arqOUT)){
+        
+        asterisco = fgetc(arqOUT);
+        fseek(arqOUT, -1, SEEK_CUR);
+        if(asterisco == '*'){
+            fseek(arqOUT, tam , SEEK_CUR);
+        }else{
+        fwrite(&tam, sizeof(int),  1, arqCOMPACTO);
+        
+        while(contHashtag < 6){
+        
+        caracter = fgetc(arqOUT);
+        if(caracter == '#'){
+         contHashtag++;
+        } 
+
+        count++;
+     
+        fputc(caracter, arqCOMPACTO);
+
+        if(contHashtag >= 6 || count >= tam){
+            fseek(arqOUT, (tam - count), SEEK_CUR);
+            fseek(arqCOMPACTO, -(count)-4, SEEK_CUR);
+            fwrite(&count, sizeof(int), 1, arqCOMPACTO);
+            fseek(arqCOMPACTO, count, SEEK_CUR);
+
+            
+        }
+
+
+
+
+
+
+        }
+            count = 0;
+        }
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+}
+
+ fclose(arqCOMPACTO);
+}
 
 
 
@@ -56,7 +141,7 @@ fwrite(&PosParouDeLer, sizeof(int), 1,arqOUT);
 
 //Bufferizando dado do registro
 fread(&registro , sizeof(ALUNO), 1, arqIN);
-sprintf(registro_buffer, "%s#%s#%s#%s#%.1f#%.1f",registro.id_aluno,registro.sigla_disc, registro.nome_aluno, registro.nome_disc, registro.media, registro.freq);
+sprintf(registro_buffer, "%s#%s#%s#%s#%.1f#%.1f#",registro.id_aluno,registro.sigla_disc, registro.nome_aluno, registro.nome_disc, registro.media, registro.freq);
 tam = strlen(registro_buffer);
 
 
@@ -309,7 +394,8 @@ case 3:
     break;
 
 case 4:
-
+    Compacta_Registro(arqOUT);
+    Sleep(1000);
 
     break;
 
