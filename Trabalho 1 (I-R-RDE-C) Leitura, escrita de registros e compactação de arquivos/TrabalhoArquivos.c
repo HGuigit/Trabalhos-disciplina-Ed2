@@ -17,14 +17,17 @@ typedef struct hist {
 void Compacta_Registro(FILE *arqOUT){
 
     int head = -1;
+    char buffer[116];
+    char stringCompacta[116] = "";
     int tamArqIN;
     int tamArqREM;
     int tam;
-    char asterisco;
-    int contHashtag = 0;
-    int count = 0;
+    int tamString;
     int tamArqOut;
-    char caracter = ' ';
+    char stringProcessada[50];
+    int count = 0;
+    char *pch;
+    char caracter;
     FILE *arqCOMPACTO;
 
     if( (arqCOMPACTO = fopen("registros2.bin", "w+b")) == NULL){
@@ -40,51 +43,34 @@ void Compacta_Registro(FILE *arqOUT){
     fwrite(&tamArqREM, sizeof(int),1, arqCOMPACTO);
     
     
-    while(fread(&tam, sizeof(int), 1, arqOUT)){
-        
-        asterisco = fgetc(arqOUT);
+    while(ftell(arqOUT) < tamArqOut){
+        fread(&tam, sizeof(int), 1, arqOUT);
+        fread(&caracter, sizeof(char), 1, arqOUT);
+        if(caracter != '*'){
         fseek(arqOUT, -1, SEEK_CUR);
-        if(asterisco == '*'){
-            fseek(arqOUT, tam , SEEK_CUR);
+        fread(buffer, sizeof(char), tam, arqOUT);
+        pch = strtok(buffer, "#");
+        while(pch != NULL){
+
+            sprintf(stringProcessada,"%s#",pch);
+            strcat(stringCompacta, stringProcessada);
+            pch = strtok(NULL, "#");
+            count ++;
+            if(count == 6){
+                break;
+            }
+
+        }
+        tamString = strlen(stringCompacta);
+        fwrite(&tamString, sizeof(int), 1, arqCOMPACTO);
+        fwrite(stringCompacta, sizeof(char), tamString, arqCOMPACTO);
+        strcpy(stringCompacta, "");
         }else{
-        fwrite(&tam, sizeof(int),  1, arqCOMPACTO);
-        
-        while(contHashtag < 6){
-        
-        caracter = fgetc(arqOUT);
-        if(caracter == '#'){
-         contHashtag++;
-        } 
-
-        count++;
-     
-        fputc(caracter, arqCOMPACTO);
-
-        if(contHashtag >= 6 || count >= tam){
-            fseek(arqOUT, (tam - count), SEEK_CUR);
-            fseek(arqCOMPACTO, -(count)-4, SEEK_CUR);
-            fwrite(&count, sizeof(int), 1, arqCOMPACTO);
-            fseek(arqCOMPACTO, count, SEEK_CUR);
-
-            
+            fseek(arqOUT, (tam - 1), SEEK_CUR);
         }
 
-
-
-
-
-
-        }
-            count = 0;
-        }
-
-
-
-
-
-
-
-}
+    }
+    system("pause");
 
 
 
@@ -164,7 +150,7 @@ Sleep(1000);
             fseek(arqOUT, 1 ,SEEK_CUR);
             fread(&proxEle, sizeof(int), 1, arqOUT);
             fseek(arqOUT, -9, SEEK_CUR);
-            fwrite(&tam, sizeof(int), 1, arqOUT);
+            fwrite(&tamReg, sizeof(int), 1, arqOUT);
             fwrite(registro_buffer,sizeof(char), tam ,arqOUT);
             printf("\nRegistro inserido no meio do arquivo!\n\n"); //Ajeitar lista???
             if(initEle != 0){
