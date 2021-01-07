@@ -55,10 +55,12 @@ void Compacta_Registro(FILE *arqOUT){
             sprintf(stringProcessada,"%s#",pch);
             strcat(stringCompacta, stringProcessada);
             pch = strtok(NULL, "#");
-            count ++;
+            count++;
             if(count == 6){
+            	count = 0;
                 break;
             }
+            
 
         }
         tamString = strlen(stringCompacta);
@@ -70,7 +72,7 @@ void Compacta_Registro(FILE *arqOUT){
         }
 
     }
-    system("pause");
+   
 
 
 
@@ -79,12 +81,19 @@ void Compacta_Registro(FILE *arqOUT){
 
 
 
-
+	system("pause");
 
 
 }
 
  fclose(arqCOMPACTO);
+ fclose(arqOUT);
+ remove("registros.bin");
+ rename("registros2.bin", "registros.bin");
+ if((arqOUT = fopen("registros.bin", "r+b")) == NULL){
+     printf("Falha na compactação do arquivo.");
+ }
+
 }
 
 
