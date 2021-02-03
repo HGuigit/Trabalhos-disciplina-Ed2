@@ -1,3 +1,4 @@
-- Não consigo pegar os id's e as disciplinas do arquivo de chave primária e passar para um vetor na memória na função get_Vector;
-- Fazer lógica da flag(Programa abortado no meio)
-- Fazer busca por chave primária
+- Gravar chaves id - disc no arquivo secundário ( lista encadeada  a partir dos nomes )
+- Busca secundária
+- Lógica de interrupção do programa no meio
+- Lógica de interrupção da inserção ( Carregar as infos do arquivo na memória ao começar o programa ).

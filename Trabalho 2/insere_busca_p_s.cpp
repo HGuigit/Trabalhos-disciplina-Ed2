@@ -12,14 +12,15 @@ int main() {
         char nome_disc[50];
         float media;
         float freq;
-    } vet[9] = {{"0000001", "111", "Joao da Silva", "Disc-333", 7.5, 72.3},
-                {"0000001", "222", "Joao da Silva", "Disc-111", 8.2, 80.4},
-                {"0000001", "333", "Joao da Silva", "Disc-222", 5.4, 79.7},                
+    } vet[8] = {{"0000001", "111", "Joao da Silva", "Disc-111", 7.5, 72.3},
+                {"0000001", "222", "Joao da Silva", "Disc-222", 8.2, 80.4},
+                {"0000001", "333", "Joao da Silva", "Disc-333", 5.4, 79.7},                
                 {"0000002", "444", "Paulo Souza", "Disc-444", 6.8, 91.3},
+            
                 {"0000003", "555", "Pedro", "Disc-555", 6.3, 72.7},
                 {"0000001", "666", "Joao da Silva", "Disc-666", 8.3, 77.7},
                 {"0000003", "777", "Pedro", "Disc-777", 9.7, 89.7},
-                {"0000001", "444", "Joao da Silva", "Disc-666", 8.3, 77.7},
+                
                 {"0000005", "888", "Lucas Silva e Silva", "Disc-888-888", 9.5, 92.7}};
        
     fd = fopen("insere.bin", "w+b");
@@ -42,7 +43,7 @@ int main() {
     
     //////////////////////////////
 	const int quantidade = 5;
-    char nomes[quantidade][50] = {"Nome-1", "Nome-2", "Nome-X", "Nome-1", "Nome-3"};
+    char nomes[quantidade][50] = {"Joao da Silva", "Paulo Souza", "Joao da Silva", "Pedro"};
        
     fd = fopen("busca_s.bin", "w+b");
     for (int i=0; i<quantidade; i++)
