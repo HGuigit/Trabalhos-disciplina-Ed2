@@ -263,13 +263,16 @@ fseek(arqKEYS, sizeof(int), SEEK_SET);
 fread(&tam_arr_keys, sizeof(int), 1, arqKEYS);
 
 
-while(ftell(arqBUSCS) < tam_busca)
+while(ftell(arqBUSCS) < tam_busca){
 
 fread(nome_busca, 50*sizeof(char), 1, arqBUSCS);
+nome_busca[50] = '\0';
+fseek(arqSECNAMES, 3*sizeof(int), SEEK_SET);
 
     while(i < num_nomes){
 
     ch = fgetc(arqSECNAMES);
+   
 
     if(ch == '#'){
         fread(&tam_vector_ids, sizeof(int), 1, arqSECNAMES);
@@ -277,9 +280,15 @@ fread(nome_busca, 50*sizeof(char), 1, arqBUSCS);
     }
     if(ch != '#'){
         strncat(nome, &ch, 1);
+
     }
     if(ch == '\0'){
+       // printf("nome : %s\n", nome);
+       // printf("nome_busca : %s\n", nome_busca);
         fread(&offset, sizeof(int), 1, arqSECNAMES);
+        if(strcmp(nome, nome_busca) == 0){
+        printf("\n\n\t\t-------------------- Registros com o nome --> %s -------------\n\n", nome_busca);
+
         while ( offset != -1){
             fseek(arqSECKEYS, offset, SEEK_SET);
             fread(id, 8*sizeof(char),1 , arqSECKEYS);
@@ -314,18 +323,23 @@ fread(nome_busca, 50*sizeof(char), 1, arqBUSCS);
 
             
         }
+        }
+
         i++;
+        strcpy(nome, "");
+       
     }
 
 
 
-
     }
-
+    strcpy(nome_busca, "");
+  i = 0;
 
 
 }
 
+}
 
 
 // PAREI NA BUSCA
@@ -736,12 +750,12 @@ case 1:
         system("cls");
         printf("\nErro na leitura do arquivo de busca primaria.");
         exit(0);
-        Sleep(2000);
+        Sleep(1300);
         system("cls");
     }else{
         system("cls");
         printf("\n Arquivo de busca de chaves primario aberto.\n");
-        Sleep(2000);
+        Sleep(1300);
         system("cls");
     }
 
@@ -754,7 +768,7 @@ case 1:
         int initPegaRegistro = 0; // Onde parei de ler no arquivo de inserÃ§Ã£o
         system("cls");
         printf("\n Arquivo de saida nao existente, criando um novo...\n ");
-        Sleep(2000);
+        Sleep(1300);
         if((arqREG = fopen("registros.bin", "w+b")) == NULL){
             printf("\nFalha na criacao do arquivo.");
         }else{
@@ -763,13 +777,13 @@ case 1:
     }else{
         system("cls");
         printf("\n Arquivo de registros carregado com sucesso !\n ");
-        Sleep(2000);
+        Sleep(1300);
     }
 
     if((arqKEYS = fopen("primary_keys.bin", "r+b")) == NULL){
         system("cls");
         printf("\n Arquivo de chaves primarias nao existente, criando um novo...\n ");
-        Sleep(2000);
+        Sleep(1300);
         if((arqKEYS = fopen("primary_keys.bin", "w+b")) == NULL){
             printf("\nFalha na criacao do arquivo.");
         }else{
@@ -786,7 +800,7 @@ case 1:
         fwrite(&nao_atualizado, sizeof(int), 1 ,arqKEYS);
         fseek(arqKEYS, 0, SEEK_SET);
         printf("\n Arquivo de chaves primarias carregado com sucesso !\n ");
-        Sleep(2000);
+        Sleep(1300);
 
     }
     // arqSEC_NAMES : HEADERS
@@ -798,7 +812,7 @@ case 1:
     if((arqSEC_NAMES = fopen("secondary_names.bin", "r+b")) == NULL){
         system("cls");
         printf("\n Arquivo de nomes secundario nao existente, criando um novo...\n ");
-        Sleep(2000);
+        Sleep(1300);
         if((arqSEC_NAMES = fopen("secondary_names.bin", "w+b")) == NULL){
             printf("\nFalha na criacao do arquivo de nomes secundarios.");
         }else{
@@ -809,12 +823,12 @@ case 1:
     }else{
         fseek(arqSEC_NAMES, 0, SEEK_SET);
         printf("\n Arquivo de nomes secundario carregado com sucesso !\n ");
-        Sleep(2000);
+        Sleep(1300);
     }
     if((arqSEC_KEYS = fopen("secondary_keys.bin", "r+b")) == NULL){
         system("cls");
         printf("\n Arquivo de chaves secundario nao existente, criando um novo...\n ");
-        Sleep(2000);
+        Sleep(1300);
         if((arqSEC_KEYS = fopen("secondary_keys.bin", "w+b")) == NULL){
             printf("\nFalha na criacao do arquivo de chaves secundarias.");
         }else{
@@ -824,17 +838,17 @@ case 1:
         fseek(arqSEC_KEYS, 0, SEEK_SET);
         get_vector_secondary(arqSEC_NAMES, arqSEC_KEYS, vector_nomes);
         printf("\n Arquivo de chaves secundarias carregado com sucesso !\n ");
-        Sleep(2000);
+        Sleep(1300);
     }
     if((arqBUSCS = fopen("busca_s.bin", "r+b")) == NULL){
         system("cls");
         printf("\n Arquivo de busca secundario nao foi possivel de ser aberto, veja se o mesmo existe...\n ");
-        Sleep(2000);
+        Sleep(1300);
     
     }else{
         system("cls");
         printf("\n Arquivo de busca de chaves secundario aberto.\n");
-        Sleep(2000);
+        Sleep(1300);
     }
     break;
 case 2: 
