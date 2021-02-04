@@ -454,15 +454,13 @@ void get_Vector(FILE *arqREG, FILE *arqKEYS, CHAVE *vector_keys){
             strcpy(vector_keys[i].id_aluno, id);
             strcpy(vector_keys[i].disc, disc);
             
-                printf("\n%s\n", vector_keys[i].id_aluno);
-                printf("\n%s\n", vector_keys[i].disc);
                 
             
             vector_keys[i].offset = offset;
         
             //printf("\n\n%s",vector_keys[i].id_aluno);
             //printf("\n%s\n\n", vector_keys[i].disc);
-            system("pause");
+            //system("pause");
             i++;
             
 
