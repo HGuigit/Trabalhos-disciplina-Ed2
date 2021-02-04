@@ -172,6 +172,7 @@ fseek(arqSECNAMES, 3*sizeof(int), SEEK_SET);
 
 for( i = 0; i < tam; i++){
 
+
 fwrite(vector_keys[i].id_aluno, 8*sizeof(char), 1 , arqKEYS);
 fwrite(vector_keys[i].disc, 4*sizeof(char), 1 , arqKEYS);
 fwrite(&vector_keys[i].offset, sizeof(int), 1 , arqKEYS);
@@ -232,16 +233,16 @@ fwrite(&marker, sizeof(marker),1,arqSECNAMES);
 }
 
 
-void busca_chave_valor_secundaria(FILE *arqSECNAMES,  FILE *arqSECKEYS, FILE *arqREG, FILE *arqBUSCS, FILE *arqKEYS, CHAVE *vector_keys){
+void busca_chave_valor_secundaria(FILE *arqSECNAMES,  FILE *arqSECKEYS, FILE *arqREG, FILE *arqBUSCS, FILE *arqKEYS, CHAVE *vector_keys, INDICE_NOMES *vector_nomes){
 
 int num_nomes;
 int  i = 0;
 int  j = 0;
+int  k = 0;
 char ch;
 int tam_vector_ids;
 char nome_busca[50];
 int tam_busca;
-char nome[50];
 int offset;
 int achou = 0;
 char id[8];
@@ -271,31 +272,18 @@ fseek(arqSECNAMES, 3*sizeof(int), SEEK_SET);
 
     while(i < num_nomes){
 
-    ch = fgetc(arqSECNAMES);
+    
    
-
-    if(ch == '#'){
-        fread(&tam_vector_ids, sizeof(int), 1, arqSECNAMES);
-
-    }
-    if(ch != '#'){
-        strncat(nome, &ch, 1);
-
-    }
-    if(ch == '\0'){
        // printf("nome : %s\n", nome);
        // printf("nome_busca : %s\n", nome_busca);
-        fread(&offset, sizeof(int), 1, arqSECNAMES);
-        if(strcmp(nome, nome_busca) == 0){
+        
+        if(strcmp(vector_nomes[i].nome, nome_busca) == 0){
         printf("\n\n\t\t-------------------- Registros com o nome --> %s -------------\n\n", nome_busca);
 
-        while ( offset != -1){
-            fseek(arqSECKEYS, offset, SEEK_SET);
-            fread(id, 8*sizeof(char),1 , arqSECKEYS);
-            fread(disc, 4*sizeof(char), 1, arqSECKEYS);
-            fread(&offset, sizeof(int), 1 , arqSECKEYS);
+        while ( k < vector_nomes[i].tam_vector){
+            
             for(j = 0; j < tam_arr_keys ; j++){
-                if(strcmp(vector_keys[j].id_aluno, id) == 0 && strcmp(vector_keys[j].disc, disc) == 0){
+                if(strcmp(vector_keys[j].id_aluno, vector_nomes[i].indices[k].id_aluno) == 0 && strcmp(vector_keys[j].disc, vector_nomes[i].indices[k].disc) == 0){
                     fseek(arqREG, vector_keys[j].offset, SEEK_SET);
                     fread(&tam_reg, sizeof(int), 1, arqREG);
                     fread(buffer, tam_reg*sizeof(char), 1, arqREG);
@@ -321,25 +309,25 @@ fseek(arqSECNAMES, 3*sizeof(int), SEEK_SET);
             }
         
 
-            
+           k++ ;
         }
+        k = 0;
         }
 
         i++;
-        strcpy(nome, "");
        
     }
 
-
+    strcpy(nome_busca, "");
+    i = 0;
 
     }
-    strcpy(nome_busca, "");
-  i = 0;
+    
 
 
 }
 
-}
+
 
 
 // PAREI NA BUSCA
@@ -446,7 +434,8 @@ void get_Vector(FILE *arqREG, FILE *arqKEYS, CHAVE *vector_keys){
     }
     fseek(arqKEYS, 0, SEEK_SET);
     }else if(atualizado == 0){
-        
+        printf("\n\n \t \tPrograma corrompido (Arquivo de chaves primarias), feche-o de maneira correta e execute-o novamente para que os dados sejam restaurados!!\n\n");
+        system("pause");
         fseek(arqREG, sizeof(int), SEEK_SET);
         while(i < tam){
 
@@ -455,16 +444,25 @@ void get_Vector(FILE *arqREG, FILE *arqKEYS, CHAVE *vector_keys){
             fread(id, sizeof(char), 7, arqREG);
             fseek(arqREG, 1, SEEK_CUR);
             fread(disc, sizeof(char),3, arqREG);
+            
             fseek(arqREG, -11 , SEEK_CUR);
             fseek(arqREG, tamREG, SEEK_CUR);
             id[7] = '\0';
             disc[3] = '\0';
+            
+            
             strcpy(vector_keys[i].id_aluno, id);
             strcpy(vector_keys[i].disc, disc);
+            
+                printf("\n%s\n", vector_keys[i].id_aluno);
+                printf("\n%s\n", vector_keys[i].disc);
+                
+            
             vector_keys[i].offset = offset;
+        
             //printf("\n\n%s",vector_keys[i].id_aluno);
             //printf("\n%s\n\n", vector_keys[i].disc);
-            //system("pause");
+            system("pause");
             i++;
             
 
@@ -481,21 +479,29 @@ void get_Vector(FILE *arqREG, FILE *arqKEYS, CHAVE *vector_keys){
 }
 
 
-void get_vector_secondary(FILE *arqSECNAMES, FILE* arqSECKEYS, INDICE_NOMES *vector_nomes){
+void get_vector_secondary(FILE *arqSECNAMES, FILE* arqSECKEYS, FILE *arqIN, INDICE_NOMES *vector_nomes, CHAVE *vector_keys){
 
 int num_nomes;
+int contagem_nomes = 0;
 int i = 0;
 int j = 0;
 char ch;
 int tam_vetor_ids;
 char nome[50] = "";
 int prox;
+int atualizado;
+int num_keys;
+int tamArq;
+int achou = 0;
+ALUNO registro;
 
 fseek(arqSECNAMES, 0, SEEK_SET);
 
 fread(&num_nomes, sizeof(int), 1, arqSECNAMES);
-fseek(arqSECNAMES, 2*sizeof(int), SEEK_CUR);
+fread(&atualizado, sizeof(int), 1, arqSECNAMES);
+fread(&num_keys, sizeof(int), 1, arqSECNAMES);
 
+if( atualizado == 1){
 
 while(i < num_nomes){
 
@@ -541,6 +547,47 @@ while(i < num_nomes){
         i++;
     }
 
+
+    }
+}else if(atualizado == 0){
+     printf("\n\n Programa corrompido (Arquivo de chaves secundarias), feche-o de maneira correta e execute-o novamente para que os dados sejam restaurados!!\n\n");
+     system("pause");
+
+    fseek(arqIN, 0, SEEK_SET);
+    while( j < num_keys){
+        i=0;
+        fread(&registro , sizeof(ALUNO), 1, arqIN);
+        do{
+            
+            
+            if(strcmp(vector_nomes[i].nome, registro.nome_aluno) == 0){ 
+                
+                vector_nomes[i].indices[vector_nomes[i].tam_vector] = vector_keys[j];
+                vector_nomes[i].indices[vector_nomes[i].tam_vector].id_aluno[7] = '\0';
+                vector_nomes[i].indices[vector_nomes[i].tam_vector].disc[3] = '\0';
+                vector_nomes[i].tam_vector = vector_nomes[i].tam_vector + 1;
+                achou = 1;
+                
+                j++;
+            
+             }
+            i++;
+            
+        }while(i <= contagem_nomes + 1 && achou == 0);
+
+        if(achou == 0){   
+                
+                strcpy(vector_nomes[contagem_nomes].nome, registro.nome_aluno);
+                vector_nomes[contagem_nomes].indices[vector_nomes[contagem_nomes].tam_vector] = vector_keys[j];
+                vector_nomes[contagem_nomes].indices[vector_nomes[contagem_nomes].tam_vector].id_aluno[7] = '\0';
+                vector_nomes[contagem_nomes].indices[vector_nomes[contagem_nomes].tam_vector].disc[3] = '\0';
+                vector_nomes[contagem_nomes].tam_vector = vector_nomes[contagem_nomes].tam_vector + 1;
+                j++;
+                contagem_nomes ++ ;
+                
+        }
+            achou = 0;
+        }   
 
 }
 
@@ -610,11 +657,6 @@ void fetch_Vector(FILE *arqKEYS, FILE *arqSEC_NAMES, char *id, char *disc, char 
     }
 
   
-    fseek(arqSEC_NAMES, sizeof(int), SEEK_SET);
-    fread(&num_inseridos, sizeof(int), 1, arqSEC_NAMES);
-    num_inseridos = num_inseridos + 1;
-    fseek(arqSEC_NAMES, sizeof(int), SEEK_SET);
-    fwrite(&num_inseridos, sizeof(int), 1, arqSEC_NAMES);
     num_keys = num_keys + 1;
     fwrite(&num_keys, sizeof(int), 1, arqKEYS);
     
@@ -638,7 +680,7 @@ void Insere_Registro_caso_2(FILE *arqIN, FILE *arqREG, FILE *arqKEYS, FILE *arqS
     int PosParouDeLer; // Onde parei de ler na inserção ou num de registros no arquivo
     int tam;
     int offset;
-
+    arqREG = fopen("registros.bin", "r+b");
     // Pegando tam do arquivo
     fseek(arqIN, 0, SEEK_END);
     tamArq = ftell(arqIN);
@@ -647,7 +689,11 @@ void Insere_Registro_caso_2(FILE *arqIN, FILE *arqREG, FILE *arqKEYS, FILE *arqS
     // Lendo posição onde parou de inserir da header
     fseek(arqREG, 0, SEEK_SET);
     fread(&PosParouDeLer, sizeof(int), 1, arqREG);
-    fseek(arqIN, sizeof(ALUNO)*PosParouDeLer, SEEK_SET);
+    if(PosParouDeLer != 0){
+        fseek(arqIN, sizeof(ALUNO)*PosParouDeLer, SEEK_SET);
+    }else{
+        fseek(arqIN, 0, SEEK_SET);
+    }
     if(ftell(arqIN) >= tamArq){
 
         printf("\n\nNao ha mais nada a ser inserido!\n");
@@ -673,7 +719,7 @@ void Insere_Registro_caso_2(FILE *arqIN, FILE *arqREG, FILE *arqKEYS, FILE *arqS
     fetch_Vector(arqKEYS, arqSEC_NAMES , registro.id_aluno, registro.sigla_disc, registro.nome_aluno, offset, vector_keys, vector_nomes);
     fseek(arqSEC_NAMES, 0, SEEK_SET);
 
-    
+    fclose(arqREG);
 
 
 
@@ -787,9 +833,9 @@ case 1:
         if((arqKEYS = fopen("primary_keys.bin", "w+b")) == NULL){
             printf("\nFalha na criacao do arquivo.");
         }else{
+            get_Vector(arqREG ,arqKEYS, vector_keys);
             fwrite(&nao_atualizado, sizeof(int), 1 ,arqKEYS);
             fwrite(&num_keys, sizeof(int), 1, arqKEYS);
-            get_Vector(arqREG ,arqKEYS, vector_keys);
             fseek(arqKEYS, 0, SEEK_SET);
         }
 
@@ -817,7 +863,7 @@ case 1:
             printf("\nFalha na criacao do arquivo de nomes secundarios.");
         }else{
             fwrite(&num_keys, sizeof(int), 1, arqSEC_NAMES);
-            fwrite(&num_keys, sizeof(int), 1, arqSEC_NAMES);
+            fseek(arqSEC_NAMES, sizeof(int), SEEK_CUR);
             fwrite(&num_keys, sizeof(int), 1, arqSEC_NAMES);
         }
     }else{
@@ -832,11 +878,16 @@ case 1:
         if((arqSEC_KEYS = fopen("secondary_keys.bin", "w+b")) == NULL){
             printf("\nFalha na criacao do arquivo de chaves secundarias.");
         }else{
-            
+            fseek(arqSEC_NAMES, sizeof(int), SEEK_SET);
+            fwrite(&nao_atualizado, sizeof(int), 1, arqSEC_NAMES);
+            fseek(arqSEC_NAMES, 0, SEEK_SET);
         }
     }else{
         fseek(arqSEC_KEYS, 0, SEEK_SET);
-        get_vector_secondary(arqSEC_NAMES, arqSEC_KEYS, vector_nomes);
+        get_vector_secondary(arqSEC_NAMES, arqSEC_KEYS, arqIN, vector_nomes, vector_keys);
+        fseek(arqSEC_NAMES, sizeof(int), SEEK_SET);
+        fwrite(&nao_atualizado, sizeof(int), 1, arqSEC_NAMES);
+        fseek(arqSEC_NAMES, 0, SEEK_SET);
         printf("\n Arquivo de chaves secundarias carregado com sucesso !\n ");
         Sleep(1300);
     }
@@ -865,7 +916,7 @@ case 3:
 
 
 case 4:
-    busca_chave_valor_secundaria(arqSEC_NAMES, arqSEC_KEYS, arqREG, arqBUSCS, arqKEYS, vector_keys);
+    busca_chave_valor_secundaria(arqSEC_NAMES, arqSEC_KEYS, arqREG, arqBUSCS, arqKEYS, vector_keys, vector_nomes);
     system("pause");
     break;
 
@@ -874,6 +925,8 @@ case 5:
     ordena_vetor_insere(arqKEYS, vector_keys, arqSEC_NAMES, arqSEC_KEYS, vector_nomes);
     fseek(arqKEYS, 0, SEEK_SET);
     fwrite(&atualizado, sizeof(int), 1, arqKEYS);
+    fseek(arqSEC_NAMES, sizeof(int), SEEK_SET);
+    fwrite(&atualizado, sizeof(int), 1, arqSEC_NAMES);
     printf("\n\nSaindo...\n\n");
     fclose(arqKEYS);
     fclose(arqREG);

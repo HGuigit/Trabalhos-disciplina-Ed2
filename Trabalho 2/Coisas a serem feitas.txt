@@ -1,4 +1,1 @@
-- Gravar chaves id - disc no arquivo secundário ( lista encadeada  a partir dos nomes )
-- Busca secundária
-- Lógica de interrupção do programa no meio
-- Lógica de interrupção da inserção ( Carregar as infos do arquivo na memória ao começar o programa ).
+Não fechar programa com "X"
