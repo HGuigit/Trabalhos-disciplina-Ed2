@@ -31,8 +31,6 @@ typedef struct{                      //para criar uma "casa" do nodo da árvore 
 
 typedef struct{ // Cada nodo da Árvore B;
         casa_nodo no[4];
-        int counter;
-
 }nodo;
 
 
@@ -83,11 +81,11 @@ int getBtree(FILE *arqARVB){
     return raizExiste;
 }
 
-int buscar(inserir add, int raiz,FILE *arqARVB)
+int buscar(inserir add, int posi,FILE *arqARVB)
 {
     nodo test;
     int qnt,counter=0;
-    fseek(arqARVB,raiz,SEEK_SET);
+    fseek(arqARVB,posi,SEEK_SET);
     fread(&test,sizeof(nodo),1,arqARVB);
     fread(&qnt,sizeof(int),1,arqARVB);
     while(counter<qnt)
@@ -118,6 +116,128 @@ int buscar(inserir add, int raiz,FILE *arqARVB)
     return (buscar(add,test.no[counter-1].dir,arqARVB));
 }
 
+void criaNoh(inserir add,FILE *arqARVB)
+{
+    
+}
+
+nodo OrganizaNoh(int qnt,nodo test,inserir add,int offset)
+{
+    int i, j;
+    casa_nodo insere,aux;
+    strcpy(insere.id_aluno, add.id_aluno);
+    strcpy(insere.sigla_disc, add.sigla_disc);
+    insere.dir = -1;
+    insere.esq = -1;
+    insere.offset_arqPrincipal = offset;
+    test.no[qnt] = insere;
+    qnt++;
+    //bubblesort
+    for(i=0; i<qnt ; i++)
+    {
+        for(j=0; j<qnt-1 ; j++)
+        {
+            if((strcmp(test.no[j].id_aluno,test.no[j+1].id_aluno) > 0))
+            {
+                aux=test.no[j];
+                test.no[j]=test.no[j+1];
+                test.no[j+1]=aux;
+            }
+        }
+
+    }
+
+    return (test);
+
+}
+
+
+int insereNaArvore(int offset,int posi, inserir add,FILE *arqARVB)
+{
+    nodo test,nova;
+    int qnt,counter=0;
+    fseek(arqARVB,posi,SEEK_SET);
+    fread(&test,sizeof(nodo),1,arqARVB);
+    fread(&qnt,sizeof(int),1,arqARVB);
+    while(counter<qnt)
+    {
+        if((strcmp(add.id_aluno,test.no[counter].id_aluno) > 0))
+        {
+            counter++;    
+        }
+        else{
+                if(strcmp(test.no[counter].id_aluno,add.id_aluno) == 0)
+                {
+                    // Logica disc
+                    if(strcmp(add.sigla_disc,test.no[counter].sigla_disc) > 0)
+                    {
+                        counter++;
+                    }
+                    else{
+                        //adiciona
+                        if(test.no[counter].esq==-1)
+                        {
+                            if(qnt==3)
+                            {
+                                //split e promove
+                            }
+                            else{
+                                nova=OrganizaNoh(qnt,test,add,offset);
+                                fseek(arqARVB,posi,SEEK_SET);
+                                fwrite(&nova,sizeof(nodo),1,arqARVB);
+                                qnt++;
+                                fwrite(&qnt, sizeof(int) , 1, arqARVB);
+                                return 1;
+                            }
+                        }
+                        else{
+                            return(insereNaArvore(offset,test.no[counter].esq,add,arqARVB));
+                        }
+                    }
+                }
+                else{
+                    if(test.no[counter].esq==-1)
+                    {
+                            if(qnt==3)
+                            {
+                                //split e promove
+                            }
+                            else
+                            {
+                                nova=OrganizaNoh(qnt,test,add,offset);
+                                fseek(arqARVB,posi,SEEK_SET);
+                                fwrite(&nova,sizeof(nodo),1,arqARVB);
+                                qnt++;
+                                fwrite(&qnt, sizeof(int) , 1, arqARVB);
+                                return 1;
+                            }
+                    }
+                    else
+                    {
+                        return(insereNaArvore(offset,test.no[counter].esq,add,arqARVB));
+                    }
+                }
+           
+        }
+    }
+    if(test.no[counter-1].dir==-1)
+    {
+        if(qnt==3)
+            {
+                //split e promove
+            }
+        else{
+            	nova=OrganizaNoh(qnt,test,add,offset);
+                fseek(arqARVB,posi,SEEK_SET);
+                fwrite(&nova,sizeof(nodo),1,arqARVB);
+                qnt++;
+                fwrite(&qnt, sizeof(int) , 1, arqARVB);
+                return 1;
+            }
+    }
+    
+
+}
 
 
 void criarArvore(int posi,inserir add,FILE *arqARVB){
@@ -159,6 +279,13 @@ int adiciona(inserir add, FILE *arqREG, FILE *arqARVB)
             fwrite(&add,sizeof(inserir),1,arqREG);
             rewind(arqREG);
             fwrite(&header,sizeof(int),1,arqREG);
+            if((insereNaArvore(offset,getBtree(arqARVB), add, arqARVB))==1)
+            {
+                printf("Inserido!\n");
+            }
+            else{
+                printf("Me derrubaro aki\n");
+            }
         }
         else{
             printf("Eh repetido\n");
