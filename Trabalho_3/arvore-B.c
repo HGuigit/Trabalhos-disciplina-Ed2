@@ -116,10 +116,7 @@ int buscar(inserir add, int posi,FILE *arqARVB)
     return (buscar(add,test.no[counter-1].dir,arqARVB));
 }
 
-void criaNoh(inserir add,FILE *arqARVB)
-{
-    
-}
+
 
 nodo OrganizaNoh(int qnt,nodo test,inserir add,int offset)
 {
@@ -142,6 +139,41 @@ nodo OrganizaNoh(int qnt,nodo test,inserir add,int offset)
                 aux=test.no[j];
                 test.no[j]=test.no[j+1];
                 test.no[j+1]=aux;
+            }else if((strcmp(test.no[j].id_aluno,test.no[j+1].id_aluno) == 0)){
+                if((strcmp(test.no[j].sigla_disc,test.no[j+1].sigla_disc) > 0)){
+                    aux=test.no[j];
+                    test.no[j]=test.no[j+1];
+                    test.no[j+1]=aux;
+                }
+            }
+        }
+
+    }
+
+    return (test);
+
+}
+
+nodo OrganizaNohVelho(int qnt,nodo test)
+{
+    int i, j;
+    casa_nodo insere,aux;
+    //bubblesort
+    for(i=0; i<qnt ; i++)
+    {
+        for(j=0; j<qnt-1 ; j++)
+        {
+            if((strcmp(test.no[j].id_aluno,test.no[j+1].id_aluno) > 0))
+            {
+                aux=test.no[j];
+                test.no[j]=test.no[j+1];
+                test.no[j+1]=aux;
+            }else if((strcmp(test.no[j].id_aluno,test.no[j+1].id_aluno) == 0)){
+                if((strcmp(test.no[j].sigla_disc,test.no[j+1].sigla_disc) > 0)){
+                    aux=test.no[j];
+                    test.no[j]=test.no[j+1];
+                    test.no[j+1]=aux;
+                }
             }
         }
 
@@ -152,46 +184,184 @@ nodo OrganizaNoh(int qnt,nodo test,inserir add,int offset)
 }
 
 
-int insereNaArvore(int offset,int posi, inserir add,FILE *arqARVB)
+void nova_raiz(casa_nodo noh,FILE *arqARVB)
+{
+    nodo raiz;
+    raiz.no[0]=noh;
+    int posi,tam=1;
+    fseek(arqARVB,0,SEEK_END);
+    posi=ftell(arqARVB);
+    fwrite(&raiz,sizeof(nodo),1,arqARVB);//poe no final a raiz
+    fwrite(&tam,sizeof(int),1,arqARVB);
+    fseek(arqARVB,0,SEEK_SET);
+    fwrite(&posi,sizeof(int),1,arqARVB);//muda o header pra posicao nova da raiz
+}
+
+
+casa_nodo Split(nodo noh,int posi, FILE *arqARVB)
+{
+    casa_nodo aux;
+    nodo maior, menor;
+    int counter=0;
+    menor.no[0]=noh.no[0];//divide entre menor e maior o noh
+    aux=noh.no[1];
+    maior.no[0]=noh.no[2];
+    maior.no[1]=noh.no[3];
+    fseek(arqARVB,posi,SEEK_SET);
+    aux.esq=ftell(arqARVB);
+    fwrite(&menor,sizeof(nodo),1,arqARVB);//escreve o noh menor na mesma posicao
+    counter=1;
+    fwrite(&counter,sizeof(int),1,arqARVB);
+    fseek(arqARVB,0,SEEK_END);
+    aux.dir=ftell(arqARVB);
+    fwrite(&maior,sizeof(nodo),1,arqARVB);
+    counter=2;
+    fwrite(&counter,sizeof(int),1,arqARVB);
+    return aux;//vai voltar recursivamente
+
+
+}
+
+nodo iguala(nodo noh,casa_nodo aux,int qnt)
+{
+	int counter=0;
+	while(counter<4)
+	{
+		if((strcmp(noh.no[counter].id_aluno,aux.id_aluno)==0)&&(strcmp(noh.no[counter].sigla_disc,aux.sigla_disc)==0))
+		{
+			if(counter!=0)
+			{
+				if(counter<(qnt-1))
+				{
+					noh.no[counter-1].dir=noh.no[counter].esq;
+					noh.no[counter+1].esq=noh.no[counter].dir;
+					return noh;
+				}
+				else{
+					noh.no[counter-1].dir=noh.no[counter].esq;
+					return noh;
+				}
+			}
+			else{
+				noh.no[counter+1].esq=noh.no[counter].dir;
+				return noh;
+			}
+		}
+		counter++;
+	}
+}
+
+casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE *arqARVB)
 {
     nodo test,nova;
-    int qnt,counter=0;
+    casa_nodo aux;
+    int qnt,counter=0,flag=0;
     fseek(arqARVB,posi,SEEK_SET);
     fread(&test,sizeof(nodo),1,arqARVB);
     fread(&qnt,sizeof(int),1,arqARVB);
     while(counter<qnt)
     {
+        // percorre página até achar um lugar onde a chave a ser adicionada é menor que a atual
         if((strcmp(add.id_aluno,test.no[counter].id_aluno) > 0))
         {
             counter++;    
         }
         else{
+            // Caso os id's sejam iguais
                 if(strcmp(test.no[counter].id_aluno,add.id_aluno) == 0)
                 {
-                    // Logica disc
+                    // Lógica de comparação das disciplinas em caso de id igual
                     if(strcmp(add.sigla_disc,test.no[counter].sigla_disc) > 0)
                     {
                         counter++;
                     }
                     else{
-                        //adiciona
+                        //Ponteiro a esquerda é -1 (Nó folha)
                         if(test.no[counter].esq==-1)
                         {
+                            // Página Cheia, split e promoção efetuado
                             if(qnt==3)
                             {
-                                //split e promove
+                                if(posi==posiAnterior)
+                                    {
+                                        nova=OrganizaNoh(qnt,test,add,offset);
+                                        aux=(Split(nova,posi,arqARVB));
+                                        nova_raiz(aux,arqARVB);
+                                        fseek(arqARVB,4,SEEK_SET);
+                                        flag=0;
+                                        fwrite(&flag,sizeof(int),1,arqARVB);
+                                        return aux;
+                                    }
+                                    else{
+                                        flag=1;
+                                        fseek(arqARVB,4,SEEK_SET);
+                                        fwrite(&flag,sizeof(int),1,arqARVB);
+                                        nova=OrganizaNoh(qnt,test,add,offset);
+                                        return(Split(nova,posi,arqARVB));
+                                    }
+
                             }
+                            // Página não cheia, insere na página e organiza ela novamente
                             else{
                                 nova=OrganizaNoh(qnt,test,add,offset);
                                 fseek(arqARVB,posi,SEEK_SET);
                                 fwrite(&nova,sizeof(nodo),1,arqARVB);
                                 qnt++;
                                 fwrite(&qnt, sizeof(int) , 1, arqARVB);
-                                return 1;
+                                printf("Inserido\n");
+                                return aux;
+                                
                             }
                         }
+                        //Não é nó folha
                         else{
-                            return(insereNaArvore(offset,test.no[counter].esq,add,arqARVB));
+                            //Percorre árvore recursivamente para a esquerda
+                            aux=insereNaArvore(offset, posi, test.no[counter].esq,add,arqARVB);
+                            fseek(arqARVB,4,SEEK_SET);
+                            fread(&flag,sizeof(int),1,arqARVB);
+                            //No retorno das chamadas checa se a flag está setada em 1, se a flag estiver setada em 1 significa que algum elemento foi promovido, logo deve tentar inserir na página atual
+                            if(flag==1)
+                            {
+                                //Lógica para se o nó atual estiver cheio, a promoção deve ser inserida, a organização efetuada e o split promoção deve ocorrer novamente
+                                if(qnt==3)
+                                {
+                                    test.no[3]=aux;
+                                    //Checagem se o nó atual é na realidade uma raiz
+                                    if(posi==posiAnterior)
+                                    {
+                                        nova=OrganizaNohVelho((qnt+1),test);
+                                        aux=(Split(nova,posi,arqARVB));
+                                        nova_raiz(aux,arqARVB);
+                                        fseek(arqARVB,4,SEEK_SET);
+                                        flag=0;
+                                        fwrite(&flag,sizeof(int),1,arqARVB);
+                                        return aux;
+                                    }
+                                    else{
+                                        nova=OrganizaNohVelho((qnt+1),test);
+                                        return(Split(nova,posi,arqARVB));
+                                    }
+                                }
+                                // página não está cheia, organiza e insere, seta flag para 0.
+                                else{
+                                    test.no[qnt]=aux;
+                                    nova=OrganizaNohVelho((qnt+1),test);
+                                    nova=iguala(nova,aux,(qnt+1));
+                                    fseek(arqARVB,posi,SEEK_SET);
+                                    fwrite(&nova,sizeof(nodo),1,arqARVB);
+                                    qnt++;
+                                    fwrite(&qnt, sizeof(int) , 1, arqARVB);
+                                    printf("Inserido\n");
+                                    flag=0;
+                                    fseek(arqARVB,4,SEEK_SET);
+                                    fwrite(&flag,sizeof(int),1,arqARVB);
+                                    return aux;
+                                }
+
+                            }
+                            else{
+                            	return aux;
+							}
                         }
                     }
                 }
@@ -200,41 +370,156 @@ int insereNaArvore(int offset,int posi, inserir add,FILE *arqARVB)
                     {
                             if(qnt==3)
                             {
-                                //split e promove
-                            }
-                            else
-                            {
+                                if(posi==posiAnterior)
+                                    {
+                                        nova=OrganizaNoh(qnt,test,add,offset);
+                                        aux=(Split(nova,posi,arqARVB));
+                                        nova_raiz(aux,arqARVB);
+                                        fseek(arqARVB,4,SEEK_SET);
+                                        flag=0;
+                                        fwrite(&flag,sizeof(int),1,arqARVB);
+                                        return aux;
+                                    }
+                                    else{
+                                        flag=1;
+                                        fseek(arqARVB,4,SEEK_SET);
+                                        fwrite(&flag,sizeof(int),1,arqARVB);
+                                        nova=OrganizaNoh(qnt,test,add,offset);
+                                        return(Split(nova,posi,arqARVB));
+                                    }
+                            }else{
                                 nova=OrganizaNoh(qnt,test,add,offset);
                                 fseek(arqARVB,posi,SEEK_SET);
                                 fwrite(&nova,sizeof(nodo),1,arqARVB);
                                 qnt++;
                                 fwrite(&qnt, sizeof(int) , 1, arqARVB);
-                                return 1;
+                                printf("Inserido\n");
+                                return aux;
                             }
+                           
                     }
                     else
                     {
-                        return(insereNaArvore(offset,test.no[counter].esq,add,arqARVB));
+                        aux=insereNaArvore(offset, posi, test.no[counter].esq,add,arqARVB);
+                        fseek(arqARVB,4,SEEK_SET);
+                        fread(&flag,sizeof(int),1,arqARVB);
+                        if(flag==1)
+                        {
+                            if(qnt==3)
+                            {
+                                test.no[3]=aux;
+                                if(posi==posiAnterior)
+                                    {
+                                        nova=OrganizaNohVelho((qnt+1),test);
+                                        aux=(Split(nova,posi,arqARVB));
+                                        nova_raiz(aux,arqARVB);
+                                        fseek(arqARVB,4,SEEK_SET);
+                                        flag=0;
+                                        fwrite(&flag,sizeof(int),1,arqARVB);
+                                        return aux;
+                                    }
+                                    else{
+                                        nova=OrganizaNohVelho(4,test);
+                                        return(Split(nova,posi,arqARVB));
+                                    }
+                            }else{
+                                test.no[qnt]=aux;
+                                nova=OrganizaNohVelho((qnt+1),test);
+                                nova=iguala(nova,aux,(qnt+1));
+                                fseek(arqARVB,posi,SEEK_SET);
+                                fwrite(&nova,sizeof(nodo),1,arqARVB);
+                                qnt++;
+                                fwrite(&qnt, sizeof(int) , 1, arqARVB);
+                                printf("Inserido\n");
+                                flag=0;
+                                fseek(arqARVB,4,SEEK_SET);
+                                fwrite(&flag,sizeof(int),1,arqARVB);
+                                return aux;
+                            }
+                        }
+                        else{
+                        	return aux;
+						}
                     }
                 }
            
         }
-    }
+    } 
     if(test.no[counter-1].dir==-1)
     {
         if(qnt==3)
-            {
-                //split e promove
-            }
-        else{
-            	nova=OrganizaNoh(qnt,test,add,offset);
-                fseek(arqARVB,posi,SEEK_SET);
-                fwrite(&nova,sizeof(nodo),1,arqARVB);
-                qnt++;
-                fwrite(&qnt, sizeof(int) , 1, arqARVB);
-                return 1;
-            }
-    }
+        {
+            if(posi==posiAnterior)
+                {
+                    nova=OrganizaNoh(qnt,test,add,offset);
+                    aux=(Split(nova,posi,arqARVB));
+                    nova_raiz(aux,arqARVB);
+                    fseek(arqARVB,4,SEEK_SET);
+                    flag=0;
+                    fwrite(&flag,sizeof(int),1,arqARVB);
+                    return aux;
+                }
+                else{
+                    flag=1;
+                    fseek(arqARVB,4,SEEK_SET);
+                    fwrite(&flag,sizeof(int),1,arqARVB);
+                    nova=OrganizaNoh(qnt,test,add,offset);
+                    return(Split(nova,posi,arqARVB));
+                }
+        }else{
+            nova=OrganizaNoh(qnt,test,add,offset);
+            fseek(arqARVB,posi,SEEK_SET);
+            fwrite(&nova,sizeof(nodo),1,arqARVB);
+            qnt++;
+            fwrite(&qnt, sizeof(int) , 1, arqARVB);
+            printf("Inserido\n");
+            return aux;
+        }
+       
+	}
+	else
+	{
+	    aux=insereNaArvore(offset, posi, test.no[counter-1].dir,add,arqARVB);
+	    fseek(arqARVB,4,SEEK_SET);
+	    fread(&flag,sizeof(int),1,arqARVB);
+	    if(flag==1)
+	    {
+	        if(qnt==3)
+	        {
+	            test.no[3]=aux;
+	            if(posi==posiAnterior)
+	                {
+	                    nova=OrganizaNohVelho((qnt+1),test);
+	                    aux=(Split(nova,posi,arqARVB));
+	                    nova_raiz(aux,arqARVB);
+	                    fseek(arqARVB,4,SEEK_SET);
+	                    flag=0;
+	                    fwrite(&flag,sizeof(int),1,arqARVB);
+	                    return aux;
+	                }
+	                else{
+	                    nova=OrganizaNohVelho((qnt+1),test);
+	                    return(Split(nova,posi,arqARVB));
+	                }
+	        }else{
+	            test.no[qnt]=aux;
+	            nova=OrganizaNohVelho((qnt+1),test);
+	            nova=iguala(nova,aux,(qnt+1));
+	            fseek(arqARVB,posi,SEEK_SET);
+	            fwrite(&nova,sizeof(nodo),1,arqARVB);
+	            qnt++;
+	            fwrite(&qnt, sizeof(int) , 1, arqARVB);
+	            printf("Inserido\n");
+	            flag=0;
+	            fseek(arqARVB,4,SEEK_SET);
+	            fwrite(&flag,sizeof(int),1,arqARVB);
+	            return aux;
+	        }
+	    }
+	    else{
+	    	return aux;
+		}
+	}
     
 
 }
@@ -264,13 +549,13 @@ int adiciona(inserir add, FILE *arqREG, FILE *arqARVB)
     int percorrer=1,header=0;
     int offset;
     inserir test;
-
+    int raiz=getBtree(arqARVB);
     rewind(arqREG);
     
-    if(getBtree(arqARVB) != -1){
+    if(raiz != -1){
 
          // Código de inserção de elemento na árvore
-        if((buscar(add,getBtree(arqARVB), arqARVB)) != 1 )
+        if((buscar(add,raiz, arqARVB)) != 1 )
         {
             fread(&header,sizeof(int),1,arqREG);
             header++;
@@ -279,13 +564,7 @@ int adiciona(inserir add, FILE *arqREG, FILE *arqARVB)
             fwrite(&add,sizeof(inserir),1,arqREG);
             rewind(arqREG);
             fwrite(&header,sizeof(int),1,arqREG);
-            if((insereNaArvore(offset,getBtree(arqARVB), add, arqARVB))==1)
-            {
-                printf("Inserido!\n");
-            }
-            else{
-                printf("Me derrubaro aki\n");
-            }
+            insereNaArvore(offset, raiz,raiz, add, arqARVB);
         }
         else{
             printf("Eh repetido\n");
@@ -322,6 +601,7 @@ int main()
 
     //Headers arqARVB
     int naoExisteArv = -1;
+    int flag = 0;
 
     //Headers arqREG
     int numInseridos = 0;
@@ -345,6 +625,7 @@ int main()
             Sleep(1500);
             system("cls");
             fwrite(&naoExisteArv, sizeof(int), 1, arqARVB);
+            fwrite(&flag, sizeof(int),1, arqARVB);
             fseek(arqARVB, 0, SEEK_SET);
         }
 
@@ -396,6 +677,8 @@ int main()
 			case 3:
 				break;
 			case 4:
+				fclose(arqARVB);
+				fclose(arqREG);
 				return 0;				
 		}
 	}while(rep==1);
