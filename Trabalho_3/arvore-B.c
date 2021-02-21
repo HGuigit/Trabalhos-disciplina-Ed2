@@ -81,6 +81,39 @@ int getBtree(FILE *arqARVB){
     return raizExiste;
 }
 
+
+int listaElementosInOrdem(int posi,FILE *arqARVB, FILE *arqREG)
+{
+    nodo test;
+    int qnt,counter=0;
+    inserir printa;
+    fseek(arqARVB,posi,SEEK_SET);
+    fread(&test,sizeof(nodo),1,arqARVB);
+    fread(&qnt,sizeof(int),1,arqARVB);
+    while(counter<qnt)
+    {
+        if(test.no[counter].esq!=-1)
+        {
+            listaElementosInOrdem(test.no[counter].esq,arqARVB,arqREG);
+            
+        }
+        fseek(arqREG, test.no[counter].offset_arqPrincipal, SEEK_SET);
+        fread(&printa, sizeof(inserir), 1, arqREG);
+        printf("\n\nID: %s\nSigla Disc: %s\nNome: %s\nNome disciplina: %s\nMedia: %2.f\nFrequencia: %2.f\n\n", printa.id_aluno, printa.sigla_disc, printa.nome_aluno, printa.nome_disc, printa.media, printa.freq);
+        counter++;
+    }
+    if(test.no[counter-1].dir!=-1)
+    {
+        listaElementosInOrdem(test.no[counter-1].dir,arqARVB,arqREG);
+
+    }
+        
+      
+
+}
+
+
+
 int buscar(inserir add, int posi,FILE *arqARVB)
 {
     nodo test;
@@ -586,7 +619,7 @@ int main()
 
     busca procura;
     inserir add;
-    int opc=0,rep=1, header = 0;
+    int opc=0,rep=1,header=0,raiz=0;
     nodo root;
 
     //Arquivos do programa
@@ -668,7 +701,9 @@ int main()
                 system("cls");
                 break;
 			case 2:
-                imprimir(arqREG);
+                fseek(arqARVB,0,SEEK_SET);
+                fread(&raiz,sizeof(int),1,arqARVB);
+                listaElementosInOrdem(raiz,arqARVB,arqREG);
 				break;
 			case 3:
 				break;
