@@ -101,7 +101,7 @@ int buscar(inserir add, int posi,FILE *arqARVB)
         else{
             if(test.no[counter].esq==-1)
             {
-                printf("Não achado\n");
+                printf("Nao achado\n");
                 return 0;
             }
             return(buscar(add,test.no[counter].esq,arqARVB));
@@ -110,7 +110,7 @@ int buscar(inserir add, int posi,FILE *arqARVB)
     if(test.no[counter-1].dir==-1)
     {
         
-        printf("Não achado\n");
+        printf("Nao achado\n");
         return 0;
     }
     return (buscar(add,test.no[counter-1].dir,arqARVB));
@@ -207,6 +207,8 @@ casa_nodo Split(nodo noh,int posi, FILE *arqARVB)
     aux=noh.no[1];
     maior.no[0]=noh.no[2];
     maior.no[1]=noh.no[3];
+    printf("\nDivisao de Noh!\n");
+    printf("\nChave %s  %s  promovida com sucesso!", aux.id_aluno, aux.sigla_disc);
     fseek(arqARVB,posi,SEEK_SET);
     aux.esq=ftell(arqARVB);
     fwrite(&menor,sizeof(nodo),1,arqARVB);//escreve o noh menor na mesma posicao
@@ -308,7 +310,6 @@ casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE
                                 fwrite(&nova,sizeof(nodo),1,arqARVB);
                                 qnt++;
                                 fwrite(&qnt, sizeof(int) , 1, arqARVB);
-                                printf("Inserido\n");
                                 return aux;
                                 
                             }
@@ -351,7 +352,6 @@ casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE
                                     fwrite(&nova,sizeof(nodo),1,arqARVB);
                                     qnt++;
                                     fwrite(&qnt, sizeof(int) , 1, arqARVB);
-                                    printf("Inserido\n");
                                     flag=0;
                                     fseek(arqARVB,4,SEEK_SET);
                                     fwrite(&flag,sizeof(int),1,arqARVB);
@@ -393,7 +393,6 @@ casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE
                                 fwrite(&nova,sizeof(nodo),1,arqARVB);
                                 qnt++;
                                 fwrite(&qnt, sizeof(int) , 1, arqARVB);
-                                printf("Inserido\n");
                                 return aux;
                             }
                            
@@ -430,7 +429,6 @@ casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE
                                 fwrite(&nova,sizeof(nodo),1,arqARVB);
                                 qnt++;
                                 fwrite(&qnt, sizeof(int) , 1, arqARVB);
-                                printf("Inserido\n");
                                 flag=0;
                                 fseek(arqARVB,4,SEEK_SET);
                                 fwrite(&flag,sizeof(int),1,arqARVB);
@@ -472,7 +470,6 @@ casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE
             fwrite(&nova,sizeof(nodo),1,arqARVB);
             qnt++;
             fwrite(&qnt, sizeof(int) , 1, arqARVB);
-            printf("Inserido\n");
             return aux;
         }
        
@@ -509,7 +506,6 @@ casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE
 	            fwrite(&nova,sizeof(nodo),1,arqARVB);
 	            qnt++;
 	            fwrite(&qnt, sizeof(int) , 1, arqARVB);
-	            printf("Inserido\n");
 	            flag=0;
 	            fseek(arqARVB,4,SEEK_SET);
 	            fwrite(&flag,sizeof(int),1,arqARVB);
@@ -565,9 +561,10 @@ int adiciona(inserir add, FILE *arqREG, FILE *arqARVB)
             rewind(arqREG);
             fwrite(&header,sizeof(int),1,arqREG);
             insereNaArvore(offset, raiz,raiz, add, arqARVB);
+            printf("\n%s %s Adicionado\n",add.id_aluno,add.sigla_disc);
         }
         else{
-            printf("Eh repetido\n");
+            printf("\nO registro %s %s é duplicado, não pode ser inserido!\n",add.id_aluno,add.sigla_disc);
         }
 
     }else{
@@ -579,11 +576,8 @@ int adiciona(inserir add, FILE *arqREG, FILE *arqARVB)
         rewind(arqREG);
         fwrite(&header,sizeof(int),1,arqREG);
         criarArvore(offset, add, arqARVB);
-        
-
-
-
-        
+        printf("\n%s %s Adicionado\n",add.id_aluno,add.sigla_disc);        
+    
     }
 }
 
@@ -670,6 +664,8 @@ int main()
 			case 1:	
 				add=abrirpAdd(arqREG);
                 header=adiciona(add,arqREG, arqARVB);
+                system("pause");
+                system("cls");
                 break;
 			case 2:
                 imprimir(arqREG);
