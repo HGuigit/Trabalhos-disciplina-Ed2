@@ -112,6 +112,65 @@ int listaElementosInOrdem(int posi,FILE *arqARVB, FILE *arqREG)
 
 }
 
+int buscarID(busca aux, int posi,FILE *arqARVB,FILE *arqREG)
+{
+    nodo test;
+    inserir printa;
+    int qnt,counter=0;
+    fseek(arqARVB,posi,SEEK_SET);
+    fread(&test,sizeof(nodo),1,arqARVB);
+    fread(&qnt,sizeof(int),1,arqARVB);
+    while(counter<qnt)
+    {
+        if((strcmp(test.no[counter].id_aluno,aux.id_aluno) == 0)&&(strcmp(test.no[counter].sigla_disc,aux.sigla_disc) == 0))
+        {
+            posi=posi-8;
+            posi=posi/100;
+            fseek(arqREG,test.no[counter].offset_arqPrincipal,SEEK_SET);
+            fread(&printa,sizeof(inserir),1,arqREG);
+            printf("\n\nID: %s\nSigla Disc: %s\nNome: %s\nNome disciplina: %s\nMedia: %2.f\nFrequencia: %2.f\n", printa.id_aluno, printa.sigla_disc, printa.nome_aluno, printa.nome_disc, printa.media, printa.freq);
+            printf("Pagina: %d\nPosicao: %d\n\n",posi,counter);
+            return 1;  
+        }
+        if((strcmp(aux.id_aluno,test.no[counter].id_aluno) > 0))
+        {
+            counter++;    
+        }
+        else{
+        	if(strcmp(test.no[counter].id_aluno,aux.id_aluno) == 0)
+        	{
+	        	if(strcmp(aux.sigla_disc,test.no[counter].sigla_disc) > 0)
+	        	{
+	        		counter++;	
+				}
+				else{
+					if(test.no[counter].esq==-1)
+			        {
+			            printf("Nao achado\n");
+			            return 0;
+			        }
+            		return(buscarID(aux, test.no[counter].esq,arqARVB,arqREG));
+				}
+			}
+			else{
+					if(test.no[counter].esq==-1)
+			        {
+			            printf("Nao achado\n");
+			            return 0;
+			        }
+            		return(buscarID(aux, test.no[counter].esq,arqARVB,arqREG));
+				}
+		}
+        
+    }
+    if(test.no[counter-1].dir==-1)
+    {
+        
+        printf("Nao achado\n");
+        return 0;
+    }
+    return (buscarID(aux, test.no[counter-1].dir,arqARVB,arqREG));
+}
 
 
 int buscar(inserir add, int posi,FILE *arqARVB)
@@ -123,22 +182,41 @@ int buscar(inserir add, int posi,FILE *arqARVB)
     fread(&qnt,sizeof(int),1,arqARVB);
     while(counter<qnt)
     {
-        if((strcmp(test.no[counter].id_aluno,add.id_aluno) == 0)&&(strcmp(test.no[counter].sigla_disc,add.sigla_disc) == 0))
+        if((strcmp(test.no[counter].id_aluno,aux.id_aluno) == 0)&&(strcmp(test.no[counter].sigla_disc,aux.sigla_disc) == 0))
         {
+            printf("\nJá existe na árvore.\n");
             return 1;  
         }
-        if((strcmp(test.no[counter].id_aluno,add.id_aluno) > 0)||(strcmp(test.no[counter].sigla_disc,add.sigla_disc) > 0))
+        if((strcmp(aux.id_aluno,test.no[counter].id_aluno) > 0))
         {
             counter++;    
         }
         else{
-            if(test.no[counter].esq==-1)
-            {
-                printf("Nao achado\n");
-                return 0;
-            }
-            return(buscar(add,test.no[counter].esq,arqARVB));
-        }
+        	if(strcmp(test.no[counter].id_aluno,aux.id_aluno) == 0)
+        	{
+	        	if(strcmp(aux.sigla_disc,test.no[counter].sigla_disc) > 0)
+	        	{
+	        		counter++;	
+				}
+				else{
+					if(test.no[counter].esq==-1)
+			        {
+			            printf("Nao achado\n");
+			            return 0;
+			        }
+            		return(buscar(add, test.no[counter].esq,arqARVB));
+				}
+			}
+			else{
+					if(test.no[counter].esq==-1)
+			        {
+			            printf("Nao achado\n");
+			            return 0;
+			        }
+            		return(buscar(add, test.no[counter].esq,arqARVB));
+				}
+		}
+        
     }
     if(test.no[counter-1].dir==-1)
     {
@@ -146,7 +224,7 @@ int buscar(inserir add, int posi,FILE *arqARVB)
         printf("Nao achado\n");
         return 0;
     }
-    return (buscar(add,test.no[counter-1].dir,arqARVB));
+    return (buscar(add, test.no[counter-1].dir,arqARVB));
 }
 
 
@@ -706,6 +784,9 @@ int main()
                 listaElementosInOrdem(raiz,arqARVB,arqREG);
 				break;
 			case 3:
+                fseek(arqARVB,0,SEEK_SET);
+                fread(&raiz,sizeof(int),1,arqARVB);
+                buscarID(abrirB(), raiz,arqARVB,arqREG);
 				break;
 			case 4:
 				fclose(arqARVB);
