@@ -182,19 +182,19 @@ int buscar(inserir add, int posi,FILE *arqARVB)
     fread(&qnt,sizeof(int),1,arqARVB);
     while(counter<qnt)
     {
-        if((strcmp(test.no[counter].id_aluno,aux.id_aluno) == 0)&&(strcmp(test.no[counter].sigla_disc,aux.sigla_disc) == 0))
+        if((strcmp(test.no[counter].id_aluno,add.id_aluno) == 0)&&(strcmp(test.no[counter].sigla_disc,add.sigla_disc) == 0))
         {
             printf("\nJá existe na árvore.\n");
             return 1;  
         }
-        if((strcmp(aux.id_aluno,test.no[counter].id_aluno) > 0))
+        if((strcmp(add.id_aluno,test.no[counter].id_aluno) > 0))
         {
             counter++;    
         }
         else{
-        	if(strcmp(test.no[counter].id_aluno,aux.id_aluno) == 0)
+        	if(strcmp(test.no[counter].id_aluno,add.id_aluno) == 0)
         	{
-	        	if(strcmp(aux.sigla_disc,test.no[counter].sigla_disc) > 0)
+	        	if(strcmp(add.sigla_disc,test.no[counter].sigla_disc) > 0)
 	        	{
 	        		counter++;	
 				}
