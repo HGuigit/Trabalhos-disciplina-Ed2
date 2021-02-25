@@ -61,6 +61,28 @@ busca abrirB()//abre arquivo para busca
     fclose(arq);
 	return input;
 }
+
+FILE* abrirC()//abre arquivo para busca
+{
+    FILE *arq=fopen("consulta.bin", "rb");
+    return arq;
+}
+
+FILE* criarArqMenores(){
+
+FILE *arq = fopen("menores.bin", "wb+");
+return arq;
+
+}
+FILE* criarArqMaiores(){
+
+FILE *arq = fopen("maiores.bin", "wb+");
+return arq;
+
+}
+
+
+
 void imprimir(FILE *arq)
 {
     int percorrer=1,lixo=0;
@@ -110,6 +132,178 @@ int listaElementosInOrdem(int posi,FILE *arqARVB, FILE *arqREG)
         
       
 
+}
+void matchsort(FILE *arqMENORES, FILE *arqMAIORES)
+{
+    FILE *match=fopen("match.bin","wb");
+    busca ele1,ele2;
+    int percorrer=0;
+    rewind(arqMENORES);
+    rewind(arqMAIORES);
+    percorrer=fread(&ele1,sizeof(busca), 1, arqMENORES);
+    percorrer=fread(&ele2,sizeof(busca), 1, arqMAIORES);
+    while(percorrer!=0)
+    {
+        
+        if(strcmp(ele1.id_aluno, ele2.id_aluno) == 0 && strcmp(ele1.sigla_disc, ele2.sigla_disc) == 0)
+        {
+            fwrite(&ele1,sizeof(busca),1,match);
+            percorrer=fread(&ele2,sizeof(busca), 1, arqMAIORES);
+        } 
+        else if(strcmp(ele1.id_aluno, ele2.id_aluno) > 0)
+        {
+            percorrer=fread(&ele2,sizeof(busca), 1, arqMAIORES);
+        }
+        else if(strcmp(ele1.id_aluno, ele2.id_aluno) < 0)
+        {
+            percorrer=fread(&ele1,sizeof(busca), 1, arqMENORES);
+        }
+        else if(strcmp(ele1.id_aluno, ele2.id_aluno) == 0){
+            if(strcmp(ele1.sigla_disc, ele2.sigla_disc) > 0)
+            {
+                percorrer=fread(&ele2,sizeof(busca), 1, arqMAIORES);
+            }
+            else if(strcmp(ele1.sigla_disc, ele2.sigla_disc) < 0)
+            {
+                percorrer=fread(&ele1,sizeof(busca), 1, arqMENORES);
+            }
+        }
+    }
+    fclose(match);
+}
+
+void mergesort(FILE *arqMENORES, FILE *arqMAIORES)
+{
+    FILE *merge=fopen("merge.bin","wb");
+    busca ele1,ele2;
+    int percorrer=0,percorrer2=0;
+    rewind(arqMENORES);
+    rewind(arqMAIORES);
+    percorrer=fread(&ele1,sizeof(busca), 1, arqMENORES);
+    percorrer2=fread(&ele2,sizeof(busca), 1, arqMAIORES);
+    while(percorrer!=0 && percorrer2!=0)
+    {
+        
+        if(strcmp(ele1.id_aluno, ele2.id_aluno) == 0 && strcmp(ele1.sigla_disc, ele2.sigla_disc) == 0)
+        {
+            fwrite(&ele1,sizeof(busca),1,merge);
+            percorrer=fread(&ele1,sizeof(busca), 1, arqMENORES);
+            percorrer2=fread(&ele2,sizeof(busca), 1, arqMAIORES);
+        } 
+        else if(strcmp(ele1.id_aluno, ele2.id_aluno) > 0)
+        {
+        	fwrite(&ele2,sizeof(busca),1,merge);
+            percorrer2=fread(&ele2,sizeof(busca), 1, arqMAIORES);
+        }
+        else if(strcmp(ele1.id_aluno, ele2.id_aluno) < 0)
+        {
+        	fwrite(&ele1,sizeof(busca),1,merge);
+            percorrer=fread(&ele1,sizeof(busca), 1, arqMENORES);
+        }
+        else if(strcmp(ele1.id_aluno, ele2.id_aluno) == 0){
+            if(strcmp(ele1.sigla_disc, ele2.sigla_disc) > 0)
+            {
+            	fwrite(&ele2,sizeof(busca),1,merge);
+                percorrer2=fread(&ele2,sizeof(busca), 1, arqMAIORES);
+            }
+            else if(strcmp(ele1.sigla_disc, ele2.sigla_disc) < 0)
+            {
+            	fwrite(&ele1,sizeof(busca),1,merge);
+                percorrer=fread(&ele1,sizeof(busca), 1, arqMENORES);
+            }
+        }
+    }
+    if(percorrer!=percorrer2)
+    {
+    	if(percorrer!=0)
+    	{
+    		while(percorrer!=0)
+    		{
+    			fwrite(&ele1,sizeof(busca),1,merge);
+            	percorrer=fread(&ele1,sizeof(busca), 1, arqMENORES);
+			}
+		}
+		else if(percorrer2!=0)
+		{
+			while(percorrer2!=0)
+    		{
+    			fwrite(&ele2,sizeof(busca),1,merge);
+            	percorrer2=fread(&ele2,sizeof(busca), 1, arqMAIORES);
+			}
+		}
+	}
+    fclose(merge);
+}
+
+int listaElementosMenoresIguaisX(int posi,FILE *arqARVB, busca procura, FILE *arqMENORES, int flag)
+{
+    nodo test;
+    int qnt,counter=0;
+    inserir printa;
+    fseek(arqARVB,posi,SEEK_SET);
+    fread(&test,sizeof(nodo),1,arqARVB);
+    fread(&qnt,sizeof(int),1,arqARVB);
+    
+    while(counter<qnt)
+    {
+        if(test.no[counter].esq!=-1)
+        {
+            flag=listaElementosMenoresIguaisX(test.no[counter].esq,arqARVB,procura,arqMENORES,flag);
+            
+        }
+        if(flag == 0){
+        fseek(arqMENORES, 0, SEEK_END);   
+        fwrite(&test.no[counter].id_aluno, sizeof(test.no[counter].id_aluno), 1, arqMENORES);
+        fwrite(&test.no[counter].sigla_disc, sizeof(test.no[counter].sigla_disc), 1, arqMENORES);
+        }
+        if(strcmp(test.no[counter].id_aluno, procura.id_aluno) == 0 && strcmp(test.no[counter].sigla_disc, procura.sigla_disc) == 0){
+            flag = 1;
+        }
+        counter++;
+    }
+    if(test.no[counter-1].dir!=-1)
+    {
+        flag=listaElementosMenoresIguaisX(test.no[counter-1].dir,arqARVB,procura,arqMENORES,flag);
+
+    }
+        
+    return flag;
+
+}
+
+int listaElementosMaioresIguaisX(int posi,FILE *arqARVB, busca procura, FILE *arqMAIORES, int flag)
+{
+    nodo test;
+    int qnt,counter=0;
+    inserir printa;
+    fseek(arqARVB,posi,SEEK_SET);
+    fread(&test,sizeof(nodo),1,arqARVB);
+    fread(&qnt,sizeof(int),1,arqARVB);
+    
+    while(counter<qnt)
+    {
+        if(test.no[counter].esq!=-1)
+        {
+            flag=listaElementosMaioresIguaisX(test.no[counter].esq,arqARVB,procura,arqMAIORES,flag);
+            
+        }
+        if(strcmp(test.no[counter].id_aluno, procura.id_aluno) == 0 && strcmp(test.no[counter].sigla_disc, procura.sigla_disc) == 0){
+            flag = 0;
+        }
+        if(flag == 0){
+        fseek(arqMAIORES, 0, SEEK_END);   
+        fwrite(&test.no[counter].id_aluno, sizeof(test.no[counter].id_aluno), 1, arqMAIORES);
+        fwrite(&test.no[counter].sigla_disc, sizeof(test.no[counter].sigla_disc), 1, arqMAIORES);
+        }
+        counter++;
+    }
+    if(test.no[counter-1].dir!=-1)
+    {
+        flag=listaElementosMaioresIguaisX(test.no[counter-1].dir,arqARVB,procura,arqMAIORES,flag);
+
+    }
+        
+    return flag;
 }
 
 int buscarID(busca aux, int posi,FILE *arqARVB,FILE *arqREG)
@@ -696,6 +890,7 @@ int main()
 {
 
     busca procura;
+    busca input;
     inserir add;
     int opc=0,rep=1,header=0,raiz=0;
     nodo root;
@@ -703,6 +898,9 @@ int main()
     //Arquivos do programa
     FILE *arqARVB;
     FILE *arqREG;
+    FILE *arqMENORES;
+    FILE *arqMAIORES;
+    FILE *arqCONSULTA;
 
     //Headers arqARVB
     int naoExisteArv = -1;
@@ -768,7 +966,7 @@ int main()
 
     }
 	do{
-		printf("Digite a opcao:\nAdicionar-->1\nPrintar alunos-->2\nBusca-->3\nSair-->4\n");
+		printf("Digite a opcao:\nAdicionar-->1\nPrintar alunos-->2\nBusca-->3\nConsulta Casada-->4\nSair-->5\n");
 		scanf("%d",&opc);
 		switch(opc)
 		{
@@ -788,7 +986,24 @@ int main()
                 fread(&raiz,sizeof(int),1,arqARVB);
                 buscarID(abrirB(), raiz,arqARVB,arqREG);
 				break;
-			case 4:
+            case 4:
+                fseek(arqARVB,0,SEEK_SET);
+                fread(&raiz,sizeof(int),1,arqARVB);
+                rewind(arqARVB);
+                arqCONSULTA = abrirC();
+                fread(&input, sizeof(busca), 1, arqCONSULTA);
+                arqMENORES = criarArqMenores();
+                arqMAIORES = criarArqMaiores();
+                listaElementosMenoresIguaisX(raiz,arqARVB, input, arqMENORES, 0);
+                rewind(arqARVB);
+                fread(&input, sizeof(busca), 1, arqCONSULTA);
+                listaElementosMaioresIguaisX(raiz,arqARVB, input, arqMAIORES, 1);
+                matchsort(arqMENORES, arqMAIORES);
+                mergesort(arqMENORES, arqMAIORES);
+                fclose(arqMAIORES);
+                fclose(arqMENORES);
+				break;
+			case 5:
 				fclose(arqARVB);
 				fclose(arqREG);
 				return 0;				
