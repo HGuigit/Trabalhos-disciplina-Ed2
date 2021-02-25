@@ -53,13 +53,10 @@ inserir abrirpAdd(FILE *arqREG)//abre arquivo para add
     return(input);  
 }
 
-busca abrirB()//abre arquivo para busca
+FILE *abrirB()//abre arquivo para busca
 {
     FILE *arq=fopen("busca.bin", "rb");
-    busca input;
-    fread(&input,sizeof(busca),1,arq);
-    fclose(arq);
-	return input;
+	return arq;
 }
 
 FILE* abrirC()//abre arquivo para busca
@@ -888,8 +885,6 @@ int adiciona(inserir add, FILE *arqREG, FILE *arqARVB)
 
 int main()
 {
-
-    busca procura;
     busca input;
     inserir add;
     int opc=0,rep=1,header=0,raiz=0;
@@ -897,6 +892,7 @@ int main()
 
     //Arquivos do programa
     FILE *arqARVB;
+    FILE *procura=abrirB();
     FILE *arqREG;
     FILE *arqMENORES;
     FILE *arqMAIORES;
@@ -984,7 +980,8 @@ int main()
 			case 3:
                 fseek(arqARVB,0,SEEK_SET);
                 fread(&raiz,sizeof(int),1,arqARVB);
-                buscarID(abrirB(), raiz,arqARVB,arqREG);
+                fread(&input,sizeof(busca),1,procura);
+                buscarID(input, raiz,arqARVB,arqREG);
 				break;
             case 4:
                 fseek(arqARVB,0,SEEK_SET);
@@ -1004,6 +1001,7 @@ int main()
                 fclose(arqMENORES);
 				break;
 			case 5:
+				fclose(procura);
 				fclose(arqARVB);
 				fclose(arqREG);
 				return 0;				
