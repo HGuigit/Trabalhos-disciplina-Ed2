@@ -20,7 +20,7 @@ typedef struct{//para ler as pessoas para buscar
         char sigla_disc[4];
 	}busca;
     
-typedef struct{                      //para criar uma "casa" do nodo da √°rvore B
+typedef struct{                      //para criar uma "casa" do nodo da ·rvore B
         char id_aluno[8];
         char sigla_disc[4];
         int  dir;                   // Ponteiro a direita da casa do vetor de structs
@@ -29,7 +29,7 @@ typedef struct{                      //para criar uma "casa" do nodo da √°rvore 
 
 }casa_nodo;
 
-typedef struct{ // Cada nodo da √Årvore B;
+typedef struct{ // Cada nodo da ¡rvore B;
         casa_nodo no[4];
 }nodo;
 
@@ -248,13 +248,19 @@ int listaElementosMenoresIguaisX(int posi,FILE *arqARVB, busca procura, FILE *ar
             flag=listaElementosMenoresIguaisX(test.no[counter].esq,arqARVB,procura,arqMENORES,flag);
             
         }
+        if(strcmp(test.no[counter].id_aluno, procura.id_aluno) == 0)
+		{
+			if(strcmp(test.no[counter].sigla_disc, procura.sigla_disc) > 0)
+            	{flag = 1;}
+        }
+        else if(strcmp(test.no[counter].id_aluno, procura.id_aluno) > 0)
+        {
+        	flag = 1;
+		}
         if(flag == 0){
         fseek(arqMENORES, 0, SEEK_END);   
         fwrite(&test.no[counter].id_aluno, sizeof(test.no[counter].id_aluno), 1, arqMENORES);
         fwrite(&test.no[counter].sigla_disc, sizeof(test.no[counter].sigla_disc), 1, arqMENORES);
-        }
-        if(strcmp(test.no[counter].id_aluno, procura.id_aluno) == 0 && strcmp(test.no[counter].sigla_disc, procura.sigla_disc) == 0){
-            flag = 1;
         }
         counter++;
     }
@@ -279,14 +285,20 @@ int listaElementosMaioresIguaisX(int posi,FILE *arqARVB, busca procura, FILE *ar
     
     while(counter<qnt)
     {
-        if(test.no[counter].esq!=-1)
+    	if(test.no[counter].esq!=-1)
         {
             flag=listaElementosMaioresIguaisX(test.no[counter].esq,arqARVB,procura,arqMAIORES,flag);
             
         }
-        if(strcmp(test.no[counter].id_aluno, procura.id_aluno) == 0 && strcmp(test.no[counter].sigla_disc, procura.sigla_disc) == 0){
-            flag = 0;
+        if(strcmp(test.no[counter].id_aluno, procura.id_aluno) == 0)
+		{
+			if(strcmp(test.no[counter].sigla_disc, procura.sigla_disc) >= 0)
+            	{flag = 0;}
         }
+        else if(strcmp(test.no[counter].id_aluno, procura.id_aluno) > 0)
+        {
+        	flag = 0;
+		}
         if(flag == 0){
         fseek(arqMAIORES, 0, SEEK_END);   
         fwrite(&test.no[counter].id_aluno, sizeof(test.no[counter].id_aluno), 1, arqMAIORES);
@@ -375,7 +387,7 @@ int buscar(inserir add, int posi,FILE *arqARVB)
     {
         if((strcmp(test.no[counter].id_aluno,add.id_aluno) == 0)&&(strcmp(test.no[counter].sigla_disc,add.sigla_disc) == 0))
         {
-            printf("\nJ√° existe na √°rvore.\n");
+            printf("\nJ· existe na ·rvore.\n");
             return 1;  
         }
         if((strcmp(add.id_aluno,test.no[counter].id_aluno) > 0))
@@ -565,7 +577,7 @@ casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE
     fread(&qnt,sizeof(int),1,arqARVB);
     while(counter<qnt)
     {
-        // percorre p√°gina at√© achar um lugar onde a chave a ser adicionada √© menor que a atual
+        // percorre p·gina atÈ achar um lugar onde a chave a ser adicionada È menor que a atual
         if((strcmp(add.id_aluno,test.no[counter].id_aluno) > 0))
         {
             counter++;    
@@ -574,16 +586,16 @@ casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE
             // Caso os id's sejam iguais
                 if(strcmp(test.no[counter].id_aluno,add.id_aluno) == 0)
                 {
-                    // L√≥gica de compara√ß√£o das disciplinas em caso de id igual
+                    // LÛgica de comparaÁ„o das disciplinas em caso de id igual
                     if(strcmp(add.sigla_disc,test.no[counter].sigla_disc) > 0)
                     {
                         counter++;
                     }
                     else{
-                        //Ponteiro a esquerda √© -1 (N√≥ folha)
+                        //Ponteiro a esquerda È -1 (NÛ folha)
                         if(test.no[counter].esq==-1)
                         {
-                            // P√°gina Cheia, split e promo√ß√£o efetuado
+                            // P·gina Cheia, split e promoÁ„o efetuado
                             if(qnt==3)
                             {
                                 if(posi==posiAnterior)
@@ -605,7 +617,7 @@ casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE
                                     }
 
                             }
-                            // P√°gina n√£o cheia, insere na p√°gina e organiza ela novamente
+                            // P·gina n„o cheia, insere na p·gina e organiza ela novamente
                             else{
                                 nova=OrganizaNoh(qnt,test,add,offset);
                                 fseek(arqARVB,posi,SEEK_SET);
@@ -616,20 +628,20 @@ casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE
                                 
                             }
                         }
-                        //N√£o √© n√≥ folha
+                        //N„o È nÛ folha
                         else{
-                            //Percorre √°rvore recursivamente para a esquerda
+                            //Percorre ·rvore recursivamente para a esquerda
                             aux=insereNaArvore(offset, posi, test.no[counter].esq,add,arqARVB);
                             fseek(arqARVB,4,SEEK_SET);
                             fread(&flag,sizeof(int),1,arqARVB);
-                            //No retorno das chamadas checa se a flag est√° setada em 1, se a flag estiver setada em 1 significa que algum elemento foi promovido, logo deve tentar inserir na p√°gina atual
+                            //No retorno das chamadas checa se a flag est· setada em 1, se a flag estiver setada em 1 significa que algum elemento foi promovido, logo deve tentar inserir na p·gina atual
                             if(flag==1)
                             {
-                                //L√≥gica para se o n√≥ atual estiver cheio, a promo√ß√£o deve ser inserida, a organiza√ß√£o efetuada e o split promo√ß√£o deve ocorrer novamente
+                                //LÛgica para se o nÛ atual estiver cheio, a promoÁ„o deve ser inserida, a organizaÁ„o efetuada e o split promoÁ„o deve ocorrer novamente
                                 if(qnt==3)
                                 {
                                     test.no[3]=aux;
-                                    //Checagem se o n√≥ atual √© na realidade uma raiz
+                                    //Checagem se o nÛ atual È na realidade uma raiz
                                     if(posi==posiAnterior)
                                     {
                                         nova=OrganizaNohVelho((qnt+1),test);
@@ -645,7 +657,7 @@ casa_nodo insereNaArvore(int offset,int posiAnterior, int posi, inserir add,FILE
                                         return(Split(nova,posi,arqARVB));
                                     }
                                 }
-                                // p√°gina n√£o est√° cheia, organiza e insere, seta flag para 0.
+                                // p·gina n„o est· cheia, organiza e insere, seta flag para 0.
                                 else{
                                     test.no[qnt]=aux;
                                     nova=OrganizaNohVelho((qnt+1),test);
@@ -852,7 +864,7 @@ int adiciona(inserir add, FILE *arqREG, FILE *arqARVB)
     
     if(raiz != -1){
 
-         // C√≥digo de inser√ß√£o de elemento na √°rvore
+         // CÛdigo de inserÁ„o de elemento na ·rvore
         if((buscar(add,raiz, arqARVB)) != 1 )
         {
             fread(&header,sizeof(int),1,arqREG);
@@ -866,7 +878,7 @@ int adiciona(inserir add, FILE *arqREG, FILE *arqARVB)
             printf("\n%s %s Adicionado\n",add.id_aluno,add.sigla_disc);
         }
         else{
-            printf("\nO registro %s %s √© duplicado, n√£o pode ser inserido!\n",add.id_aluno,add.sigla_disc);
+            printf("\nO registro %s %s È duplicado, n„o pode ser inserido!\n",add.id_aluno,add.sigla_disc);
         }
 
     }else{
@@ -991,10 +1003,10 @@ int main()
                 fread(&input, sizeof(busca), 1, arqCONSULTA);
                 arqMENORES = criarArqMenores();
                 arqMAIORES = criarArqMaiores();
-                listaElementosMenoresIguaisX(raiz,arqARVB, input, arqMENORES, 0);
+                listaElementosMaioresIguaisX(raiz,arqARVB, input, arqMAIORES, 1);
                 rewind(arqARVB);
                 fread(&input, sizeof(busca), 1, arqCONSULTA);
-                listaElementosMaioresIguaisX(raiz,arqARVB, input, arqMAIORES, 1);
+                listaElementosMenoresIguaisX(raiz,arqARVB, input, arqMENORES, 0);
                 matchsort(arqMENORES, arqMAIORES);
                 mergesort(arqMENORES, arqMAIORES);
                 fclose(arqMAIORES);
