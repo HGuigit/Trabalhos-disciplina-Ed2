@@ -20,6 +20,12 @@ typedef struct{
     int posi;
 }indice;
 
+typedef struct{//para ler as pessoas para buscar
+        char id_aluno[8];
+        char sigla_disc[4];
+}busca;
+
+
 inserir abrirpAdd(FILE *arqREG)//abre arquivo para add
 {
     int header=0;
@@ -40,7 +46,41 @@ inserir abrirpAdd(FILE *arqREG)//abre arquivo para add
 }
 
 
-
+void apaga(busca id,FILE *arqHASH)
+{
+	int numID = (atoi(id.id_aluno))*1000;
+    int numDISC = atoi(id.sigla_disc);
+    int posi=0,posi_inicial=0,hash=0;
+    indice teste;
+    inserir ler;
+    hash=numID+numDISC;
+    posi = hash % TAMANHO;
+    posi_inicial = posi;
+    do{
+        fseek(arqHASH,posi*sizeof(indice),SEEK_SET);
+        fread(&teste, sizeof(indice), 1, arqHASH);
+        
+        if(teste.hash == hash){
+            fseek(arqHASH,posi*sizeof(indice),SEEK_SET);
+            teste.hash=0;
+            teste.posi=0;
+            teste.flag=0;
+            fwrite(&teste,sizeof(indice),1,arqHASH);
+            printf("Apagado!\n");
+            return;
+        }else{
+             if(posi == TAMANHO-1){
+                posi = 0;
+            }
+            else{
+				posi++;
+			}
+        }
+       
+    }while(posi_inicial!=posi);
+    printf("\nChave nao encontrada!\n");
+    return;
+}
 
 
 int testeExiste(inserir add,FILE *arqHASH)
@@ -77,7 +117,44 @@ int testeExiste(inserir add,FILE *arqHASH)
 }
 
 
-
+void buscar(busca id,FILE *arqHASH,FILE *arqREG)
+{
+	int numID = (atoi(id.id_aluno))*1000;
+    int numDISC = atoi(id.sigla_disc);
+    int posi=0,posi_inicial=0,hash,tentativas=0;
+    indice teste;
+    inserir ler;
+    hash=numID+numDISC;
+    posi = hash % TAMANHO;
+    posi_inicial = posi;
+    do{
+        fseek(arqHASH,posi*sizeof(indice),SEEK_SET);
+        fread(&teste, sizeof(indice), 1, arqHASH);
+        if(teste.flag==0)
+        {
+        	printf("\nChave nao encontrada!\n");
+            return;
+        }else if(teste.hash == hash){
+            printf("\nChave encontrada, endereco %d, %d acessos\n", posi, tentativas);
+            fseek(arqREG,teste.posi,SEEK_SET);
+            fread(&ler,sizeof(inserir),1,arqREG);
+            printf("ID_ALUNO: %s\nSigla disc: %s\nNome do aluno: %s\nNome da disciplina: %s\nMedia: %.2f\nFrequencia: %.2f\n",ler.id_aluno,ler.sigla_disc,ler.nome_aluno, ler.nome_disc, ler.media, ler.freq);
+            return;
+        }else if(teste.flag == 1){
+             if(posi == TAMANHO-1){
+             	tentativas++;
+                posi = 0;
+            }
+            else{
+            	tentativas++;
+				posi++;
+			}
+        }
+       
+    }while(posi_inicial!=posi);
+    printf("\nChave nao encontrada!\n");
+    return;
+}
 
 void adiciona(FILE *arqHASH,FILE *arqREG,inserir add)
 {
@@ -111,16 +188,27 @@ void adiciona(FILE *arqHASH,FILE *arqREG,inserir add)
 
 }
 
+FILE *abrirB()//abre arquivo para busca
+{
+    FILE *arq=fopen("busca.bin", "rb");
+	return arq;
+}
 
+FILE *abrirA()//abre arquivo para busca
+{
+    FILE *arq=fopen("remove.bin", "rb");
+	return arq;
+}
 
 int main(){
 
     FILE *arqREG;
     FILE *arqHASH;
     FILE *arqINPUT;
-    FILE *arqREM;
-    FILE *arqBUSCA;
+    FILE *arqREM=abrirA();
+    FILE *arqBUSCA=abrirB();
     indice aux;
+    busca input;
     inserir add;
     int rep = 1,numInseridos=0,opc=0;
 
@@ -139,7 +227,12 @@ int main(){
             aux.flag=0;
             aux.hash=0;
             aux.posi=0;
-            rep=fwrite(&aux, sizeof(indice), 13, arqHASH);
+            int count=0;
+            while(count<TAMANHO-1)
+            {
+            	fwrite(&aux, sizeof(indice), 1, arqHASH);
+            	count++;
+			}
             fseek(arqHASH, 0, SEEK_SET);
             printf("\nSucesso em criar o arquivo de HASH...\n");
             Sleep(1500);
@@ -189,10 +282,12 @@ int main(){
                 adiciona(arqHASH, arqREG, add);
                 break;
 			case 2:
-               
+                fread(&input,sizeof(busca),1,arqREM);
+                apaga(input,arqHASH);
 				break;
 			case 3:
-               
+                fread(&input,sizeof(busca),1,arqBUSCA);
+                buscar(input,arqHASH,arqREG);
 				break;
 			case 4:
 				fclose(arqHASH);
