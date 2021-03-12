@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <conio.h>
 #include <string.h>
-
 #define TAMANHO 13
+
+//Grupo Guilherme de Souza e Lucas Bastelli
 
 typedef struct{//para inserir
         char id_aluno[8];
